@@ -10,9 +10,7 @@ guideline.md
 1. **옵셔널 입력 허용**: 유저는 (a) PDF만, (b) PDF+오디오/비디오, (c) 오디오/비디오만 업로드할 수 있다. 오디오 경로는 추후 확장 가능하도록 **기능 플래그**로 분리한다.
 2. **완전 구조화 출력**: Gemini API는 **Structured Output**(JSON Schema/responseSchema)을 강제한다. 후처리 없이 DB에 안전하게 적재 가능해야 한다. ([Google AI for Developers][1])
 3. **대용량·장시간 작업 분리**: 업로드·전사·생성은 **비동기 잡**으로 분리하고, 프론트엔드는 폴링/웹훅으로 상태를 반영한다.
-4. **배포 전략**: UI/경량 API는 **Vercel(Next.js 15)**, 장시간/대용량 잡은 **Render(Background Worker)** 혹은 **Inngest/Upstash QStash** 조합을 권장(아래 비교). ([Next.js][2])
-5. **준의료(HIPAA) 고려**: 의료 강의 등 민감 데이터가 포함될 수 있다. **ElevenLabs STT는 HIPAA 용도 시 BAA 체결 필요**. 스토리지/로그 보존 정책도 이에 맞춘다. ([ElevenLabs][3])
-
+4. **배포 전략**: UI/경량 API는 **Vercel(Next.js 15)**, 장시간/대용량 잡은 **Render(Background Worker)** 조합을 권장(아래 비교). ([Next.js][2])
 ---
 
 ## 1) 상위 아키텍처
