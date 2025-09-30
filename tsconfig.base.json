@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@quizdude/shared/*": ["packages/shared/src/*"],
+      "@quizdude/shared": ["packages/shared/src/index.ts"],
+      "@quizdude/db": ["packages/db/src/index.ts"],
+      "@quizdude/config/*": ["packages/shared/src/config/*"],
+      "@quizdude/storage/*": ["packages/shared/src/storage/*"],
+      "@quizdude/schemas/*": ["packages/shared/src/schemas/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "build", ".next"]
+}

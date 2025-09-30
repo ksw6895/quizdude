@@ -1,0 +1,21 @@
+{
+  "name": "@quizdude/db",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "lint": "pnpm exec eslint src --ext .ts",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.18.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.18.0",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UploadType {
+  PDF
+  AUDIO
+  VIDEO
+  TRANSCRIPT
+}
+
+enum UploadStatus {
+  REQUESTED
+  UPLOADING
+  READY
+  FAILED
+}
+
+enum JobType {
+  SUMMARIZE
+  QUIZ
+  TRANSCRIBE
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  NEEDS_ATTENTION
+}
+
+model Lecture {
+  id                    String     @id @default(cuid())
+  title                 String
+  description           String?
+  language              String     @default("ko")
+  audioPipelineEnabled  Boolean    @default(false)
+  modality              String     @default("pdf_only")
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  uploads               Upload[]
+  transcripts           Transcript[]
+  summaries             Summary[]
+  quizzes               Quiz[]
+  jobs                  JobRun[]
+}
+
+model Upload {
+  id            String       @id @default(cuid())
+  lecture       Lecture      @relation(fields: [lectureId], references: [id])
+  lectureId     String
+  type          UploadType
+  blobKey       String
+  uploadUrl     String
+  uploadToken   String
+  contentType   String
+  sizeBytes     Int?
+  status        UploadStatus @default(REQUESTED)
+  metadata      Json?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Transcript {
+  id              String    @id @default(cuid())
+  lecture         Lecture   @relation(fields: [lectureId], references: [id])
+  lectureId       String
+  sourceUpload    Upload   @relation(fields: [sourceUploadId], references: [id])
+  sourceUploadId  String
+  status          JobStatus @default(PENDING)
+  text            String?
+  diarization     Json?
+  language        String?
+  durationSeconds Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([lectureId, sourceUploadId])
+}
+
+model Summary {
+  id         String   @id @default(cuid())
+  lecture    Lecture  @relation(fields: [lectureId], references: [id])
+  lectureId  String
+  payload    Json
+  rawResponse Json?
+  model      String
+  inputFiles Json?
+  quizzes    Quiz[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Quiz {
+  id         String   @id @default(cuid())
+  lecture    Lecture  @relation(fields: [lectureId], references: [id])
+  lectureId  String
+  payload    Json
+  rawResponse Json?
+  model      String
+  inputFiles Json?
+  summaryId  String?
+  summary    Summary? @relation(fields: [summaryId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model JobRun {
+  id          String    @id @default(cuid())
+  lecture     Lecture   @relation(fields: [lectureId], references: [id])
+  lectureId   String
+  type        JobType
+  status      JobStatus @default(PENDING)
+  attempts    Int       @default(0)
+  scheduledAt DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  payload     Json?
+  result      Json?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
