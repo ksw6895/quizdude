@@ -36,42 +36,43 @@ enum JobStatus {
 }
 
 model Lecture {
-  id                    String     @id @default(cuid())
-  title                 String
-  description           String?
-  language              String     @default("ko")
-  audioPipelineEnabled  Boolean    @default(false)
-  modality              String     @default("pdf_only")
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-  uploads               Upload[]
-  transcripts           Transcript[]
-  summaries             Summary[]
-  quizzes               Quiz[]
-  jobs                  JobRun[]
+  id                   String       @id @default(cuid())
+  title                String
+  description          String?
+  language             String       @default("ko")
+  audioPipelineEnabled Boolean      @default(false)
+  modality             String       @default("pdf_only")
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  uploads              Upload[]
+  transcripts          Transcript[]
+  summaries            Summary[]
+  quizzes              Quiz[]
+  jobs                 JobRun[]
 }
 
 model Upload {
-  id            String       @id @default(cuid())
-  lecture       Lecture      @relation(fields: [lectureId], references: [id])
-  lectureId     String
-  type          UploadType
-  blobKey       String
-  uploadUrl     String
-  uploadToken   String
-  contentType   String
-  sizeBytes     Int?
-  status        UploadStatus @default(REQUESTED)
-  metadata      Json?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  lecture     Lecture      @relation(fields: [lectureId], references: [id])
+  lectureId   String
+  type        UploadType
+  blobKey     String
+  uploadUrl   String
+  uploadToken String
+  contentType String
+  sizeBytes   Int?
+  status      UploadStatus @default(REQUESTED)
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  transcripts Transcript[] @relation("TranscriptSource")
 }
 
 model Transcript {
   id              String    @id @default(cuid())
   lecture         Lecture   @relation(fields: [lectureId], references: [id])
   lectureId       String
-  sourceUpload    Upload   @relation(fields: [sourceUploadId], references: [id])
+  sourceUpload    Upload    @relation("TranscriptSource", fields: [sourceUploadId], references: [id])
   sourceUploadId  String
   status          JobStatus @default(PENDING)
   text            String?
@@ -85,30 +86,30 @@ model Transcript {
 }
 
 model Summary {
-  id         String   @id @default(cuid())
-  lecture    Lecture  @relation(fields: [lectureId], references: [id])
-  lectureId  String
-  payload    Json
+  id          String   @id @default(cuid())
+  lecture     Lecture  @relation(fields: [lectureId], references: [id])
+  lectureId   String
+  payload     Json
   rawResponse Json?
-  model      String
-  inputFiles Json?
-  quizzes    Quiz[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  model       String
+  inputFiles  Json?
+  quizzes     Quiz[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Quiz {
-  id         String   @id @default(cuid())
-  lecture    Lecture  @relation(fields: [lectureId], references: [id])
-  lectureId  String
-  payload    Json
+  id          String   @id @default(cuid())
+  lecture     Lecture  @relation(fields: [lectureId], references: [id])
+  lectureId   String
+  payload     Json
   rawResponse Json?
-  model      String
-  inputFiles Json?
-  summaryId  String?
-  summary    Summary? @relation(fields: [summaryId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  model       String
+  inputFiles  Json?
+  summaryId   String?
+  summary     Summary? @relation(fields: [summaryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model JobRun {

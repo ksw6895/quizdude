@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
@@ -49,7 +49,7 @@ function RawJson({ label, value }: { label: string; value: unknown }) {
   );
 }
 
-export default function AdminJobsPage() {
+function AdminJobsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const selectedLectureId = searchParams.get('lecture');
@@ -63,7 +63,12 @@ export default function AdminJobsPage() {
     { refreshInterval: REFRESH_INTERVAL_MS },
   );
 
-  const { data: lectureDetail, error: detailError, isLoading, mutate } = useSWR<LectureDetail>(
+  const {
+    data: lectureDetail,
+    error: detailError,
+    isLoading,
+    mutate,
+  } = useSWR<LectureDetail>(
     selectedLectureId ? ['admin-lecture', selectedLectureId] : null,
     async () => {
       if (!selectedLectureId) {
@@ -95,8 +100,27 @@ export default function AdminJobsPage() {
   };
 
   return (
-    <main style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '1.5rem', padding: '2rem 1.5rem 4rem' }}>
-      <aside style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}>
+    <main
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '320px 1fr',
+        gap: '1.5rem',
+        padding: '2rem 1.5rem 4rem',
+      }}
+    >
+      <aside
+        style={{
+          border: '1px solid #e5e7eb',
+          borderRadius: '0.75rem',
+          padding: '1rem',
+          background: '#fff',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+          maxHeight: 'calc(100vh - 4rem)',
+          overflowY: 'auto',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>강의 목록</h2>
           <Link href="/dashboard" style={{ color: '#2563eb', fontSize: '0.9rem' }}>
@@ -104,7 +128,16 @@ export default function AdminJobsPage() {
           </Link>
         </div>
         {lectures && lectures.length > 0 ? (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+            }}
+          >
             {lectures.map((lecture) => {
               const isActive = lecture.id === selectedLectureId;
               return (
@@ -128,7 +161,9 @@ export default function AdminJobsPage() {
                     }}
                   >
                     <span style={{ fontWeight: 600 }}>{lecture.title}</span>
-                    <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>생성일 {formatDate(lecture.createdAt)}</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                      생성일 {formatDate(lecture.createdAt)}
+                    </span>
                   </button>
                 </li>
               );
@@ -150,9 +185,12 @@ export default function AdminJobsPage() {
               <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>{lectureDetail.title}</h1>
               <p style={{ color: '#4b5563' }}>{lectureDetail.description ?? '설명 없음'}</p>
               <div style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-                {lectureDetail.language.toUpperCase()} · {lectureDetail.modality} · 생성일 {formatDate(lectureDetail.createdAt)}
+                {lectureDetail.language.toUpperCase()} · {lectureDetail.modality} · 생성일{' '}
+                {formatDate(lectureDetail.createdAt)}
               </div>
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+              <div
+                style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}
+              >
                 <button
                   type="button"
                   onClick={rerunSummary}
@@ -184,12 +222,23 @@ export default function AdminJobsPage() {
               </div>
             </header>
 
-            <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <section
+              style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.75rem',
+                padding: '1.25rem',
+                background: '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+              }}
+            >
               <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>최근 요약</h2>
               {latestSummary ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                    모델 {latestSummary.model} · 생성일 {formatDate(latestSummary.createdAt)} · 요약 ID {latestSummary.id}
+                    모델 {latestSummary.model} · 생성일 {formatDate(latestSummary.createdAt)} · 요약
+                    ID {latestSummary.id}
                   </div>
                   <RawJson label="요약 JSON" value={latestSummary.payload as LectureSummary} />
                   <RawJson label="원본 응답" value={latestSummary.rawResponse} />
@@ -200,12 +249,23 @@ export default function AdminJobsPage() {
               )}
             </section>
 
-            <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <section
+              style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.75rem',
+                padding: '1.25rem',
+                background: '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+              }}
+            >
               <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>최근 퀴즈</h2>
               {latestQuiz ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                    모델 {latestQuiz.model} · 생성일 {formatDate(latestQuiz.createdAt)} · 퀴즈 ID {latestQuiz.id}
+                    모델 {latestQuiz.model} · 생성일 {formatDate(latestQuiz.createdAt)} · 퀴즈 ID{' '}
+                    {latestQuiz.id}
                   </div>
                   <RawJson label="퀴즈 JSON" value={latestQuiz.payload as QuizSet} />
                   <RawJson label="원본 응답" value={latestQuiz.rawResponse} />
@@ -216,29 +276,123 @@ export default function AdminJobsPage() {
               )}
             </section>
 
-            <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <section
+              style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.75rem',
+                padding: '1.25rem',
+                background: '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+              }}
+            >
               <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>잡 이력</h2>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '760px' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc' }}>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>ID</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>타입</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>상태</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>시작</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>완료</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>오류</th>
+                      <th
+                        style={{
+                          padding: '0.5rem',
+                          textAlign: 'left',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        ID
+                      </th>
+                      <th
+                        style={{
+                          padding: '0.5rem',
+                          textAlign: 'left',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        타입
+                      </th>
+                      <th
+                        style={{
+                          padding: '0.5rem',
+                          textAlign: 'left',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        상태
+                      </th>
+                      <th
+                        style={{
+                          padding: '0.5rem',
+                          textAlign: 'left',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        시작
+                      </th>
+                      <th
+                        style={{
+                          padding: '0.5rem',
+                          textAlign: 'left',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        완료
+                      </th>
+                      <th
+                        style={{
+                          padding: '0.5rem',
+                          textAlign: 'left',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        오류
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {lectureDetail.jobs.map((job) => (
                       <tr key={job.id}>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontFamily: 'monospace', fontSize: '0.85rem' }}>{job.id}</td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>{job.type}</td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', color: job.status === 'SUCCEEDED' ? '#15803d' : job.status === 'NEEDS_ATTENTION' || job.status === 'FAILED' ? '#dc2626' : '#1f2937' }}>{job.status}</td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>{formatDate(job.startedAt)}</td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>{formatDate(job.completedAt)}</td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', color: '#dc2626' }}>{job.lastError ?? '—'}</td>
+                        <td
+                          style={{
+                            padding: '0.5rem',
+                            borderBottom: '1px solid #e5e7eb',
+                            fontFamily: 'monospace',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          {job.id}
+                        </td>
+                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {job.type}
+                        </td>
+                        <td
+                          style={{
+                            padding: '0.5rem',
+                            borderBottom: '1px solid #e5e7eb',
+                            color:
+                              job.status === 'SUCCEEDED'
+                                ? '#15803d'
+                                : job.status === 'NEEDS_ATTENTION' || job.status === 'FAILED'
+                                  ? '#dc2626'
+                                  : '#1f2937',
+                          }}
+                        >
+                          {job.status}
+                        </td>
+                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {formatDate(job.startedAt)}
+                        </td>
+                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                          {formatDate(job.completedAt)}
+                        </td>
+                        <td
+                          style={{
+                            padding: '0.5rem',
+                            borderBottom: '1px solid #e5e7eb',
+                            color: '#dc2626',
+                          }}
+                        >
+                          {job.lastError ?? '—'}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -249,5 +403,19 @@ export default function AdminJobsPage() {
         )}
       </section>
     </main>
+  );
+}
+
+export default function AdminJobsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main style={{ padding: '2rem', color: '#6b7280' }}>
+          관리자 데이터를 불러오는 중입니다...
+        </main>
+      }
+    >
+      <AdminJobsPageContent />
+    </Suspense>
   );
 }

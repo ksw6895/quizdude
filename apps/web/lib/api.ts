@@ -1,7 +1,4 @@
-import type {
-  LectureDetailResponse,
-  LectureListResponse,
-} from './types';
+import type { LectureDetailResponse, LectureListResponse } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_ORCHESTRATOR_URL?.replace(/\/$/, '') ?? '';
 
@@ -71,14 +68,24 @@ export async function getLectureDetail(lectureId: string) {
   return apiFetch<LectureDetailResponse>(`/api/lectures/${lectureId}`);
 }
 
+export interface UploadTargetResponse {
+  id: string;
+  kind: string;
+  url: string;
+  token: string;
+  pathname: string;
+  contentType: string;
+}
+
 export async function createLecture(payload: CreateLecturePayload) {
-  return apiFetch<{ lectureId: string; uploads: Array<{ id: string; kind: string; url: string; token: string; contentType: string }>; audioPipelineEnabled: boolean }>(
-    '/api/lectures',
-    {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    },
-  );
+  return apiFetch<{
+    lectureId: string;
+    uploads: UploadTargetResponse[];
+    audioPipelineEnabled: boolean;
+  }>('/api/lectures', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function updateUploadStatus(lectureId: string, payload: UpdateUploadPayload) {
@@ -102,7 +109,10 @@ export async function triggerQuiz(lectureId: string, payload: JobTriggerPayload 
   });
 }
 
-export async function triggerTranscription(lectureId: string, payload: JobTriggerPayload & { uploadId?: string } = {}) {
+export async function triggerTranscription(
+  lectureId: string,
+  payload: JobTriggerPayload & { uploadId?: string } = {},
+) {
   return apiFetch(`/api/lectures/${lectureId}/transcribe`, {
     method: 'POST',
     body: JSON.stringify(payload),

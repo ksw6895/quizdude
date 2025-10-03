@@ -72,6 +72,9 @@ importers:
       '@quizdude/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@vercel/blob':
+        specifier: ^0.24.1
+        version: 0.24.1
       next:
         specifier: ^15.0.0
         version: 15.5.4(react-dom@19.1.1)(react@19.1.1)
@@ -132,6 +135,9 @@ importers:
         specifier: ^5.18.0
         version: 5.22.0(prisma@5.22.0)
     devDependencies:
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.18
       prisma:
         specifier: ^5.18.0
         version: 5.22.0
@@ -148,6 +154,9 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
     devDependencies:
+      '@types/node':
+        specifier: ^20.16.5
+        version: 20.19.18
       typescript:
         specifier: ^5.5.4
         version: 5.9.2

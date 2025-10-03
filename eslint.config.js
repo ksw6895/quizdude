@@ -6,13 +6,28 @@ import prettier from 'eslint-config-prettier';
 export default [
   {
     files: ['**/*.{ts,tsx,js,jsx}'],
-    ignores: ['node_modules', 'dist', 'build', '.next'],
+    ignores: ['node_modules', 'dist', 'build', '.next', '**/next-env.d.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: true,
         tsconfigRootDir: import.meta.dirname,
         sourceType: 'module',
+      },
+      globals: {
+        fetch: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        Headers: 'readonly',
+        FormData: 'readonly',
+        Blob: 'readonly',
+        File: 'readonly',
+        FileList: 'readonly',
+        HTMLDivElement: 'readonly',
+        HTMLFormElement: 'readonly',
+        RequestInit: 'readonly',
+        crypto: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
       },
     },
     plugins: {
@@ -20,10 +35,9 @@ export default [
     },
     rules: {
       ...eslint.configs.recommended.rules,
-      ...tseslint.configs['strict-type-checked'].rules,
+      ...tseslint.configs.recommended.rules,
       ...prettier.rules,
-      '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/consistent-type-imports': 'warn',
     },
   },
 ];

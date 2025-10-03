@@ -23,7 +23,14 @@ function formatDate(value?: string | null) {
 function SummarySection({ summary }: { summary?: SummaryDetail }) {
   if (!summary) {
     return (
-      <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', background: '#fff' }}>
+      <section
+        style={{
+          border: '1px solid #e5e7eb',
+          borderRadius: '0.75rem',
+          padding: '1.25rem',
+          background: '#fff',
+        }}
+      >
         <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>요약</h2>
         <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>생성된 요약이 없습니다.</p>
       </section>
@@ -33,7 +40,17 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
   const payload = summary.payload as LectureSummary;
 
   return (
-    <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <section
+      style={{
+        border: '1px solid #e5e7eb',
+        borderRadius: '0.75rem',
+        padding: '1.5rem',
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.25rem',
+      }}
+    >
       <header style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
         <h2 style={{ fontSize: '1.35rem', fontWeight: 700 }}>요약</h2>
         <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
@@ -41,10 +58,27 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
         </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '1rem',
+        }}
+      >
         <div style={{ background: '#f8fafc', borderRadius: '0.75rem', padding: '1rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>메타 정보</h3>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem', color: '#1f2937', fontSize: '0.95rem' }}>
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.35rem',
+              color: '#1f2937',
+              fontSize: '0.95rem',
+            }}
+          >
             <li>강의 ID: {payload.meta.lectureId}</li>
             <li>제목: {payload.meta.title}</li>
             <li>언어: {payload.meta.language}</li>
@@ -64,14 +98,36 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
 
       <div>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>하이라이트</h3>
-        <ul style={{ listStyle: 'none', margin: '0.75rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <ul
+          style={{
+            listStyle: 'none',
+            margin: '0.75rem 0 0',
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+          }}
+        >
           {payload.highlights.map((highlight, index) => (
-            <li key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}>
+            <li
+              key={index}
+              style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}
+            >
               <div style={{ fontWeight: 600 }}>{highlight.point}</div>
               <p style={{ color: '#374151', margin: '0.4rem 0 0.6rem' }}>{highlight.why}</p>
               <div style={{ color: '#6b7280', fontSize: '0.85rem', display: 'flex', gap: '1rem' }}>
-                <span>PDF: {highlight.sourceMap.pdfPages.length ? highlight.sourceMap.pdfPages.join(', ') : '—'}</span>
-                <span>타임스탬프: {highlight.sourceMap.timestamps.length ? highlight.sourceMap.timestamps.join(', ') : '—'}</span>
+                <span>
+                  PDF:{' '}
+                  {highlight.sourceMap.pdfPages.length
+                    ? highlight.sourceMap.pdfPages.join(', ')
+                    : '—'}
+                </span>
+                <span>
+                  타임스탬프:{' '}
+                  {highlight.sourceMap.timestamps.length
+                    ? highlight.sourceMap.timestamps.join(', ')
+                    : '—'}
+                </span>
               </div>
             </li>
           ))}
@@ -80,9 +136,21 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
 
       <div>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>암기 포인트</h3>
-        <ul style={{ listStyle: 'none', margin: '0.75rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <ul
+          style={{
+            listStyle: 'none',
+            margin: '0.75rem 0 0',
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.6rem',
+          }}
+        >
           {payload.memorization.map((memo, index) => (
-            <li key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '0.9rem' }}>
+            <li
+              key={index}
+              style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '0.9rem' }}
+            >
               <div style={{ fontWeight: 600 }}>{memo.fact}</div>
               <p style={{ color: '#374151', marginTop: '0.35rem' }}>{memo.mnemonic}</p>
             </li>
@@ -92,9 +160,21 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
 
       <div>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>핵심 개념</h3>
-        <ul style={{ listStyle: 'none', margin: '0.75rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <ul
+          style={{
+            listStyle: 'none',
+            margin: '0.75rem 0 0',
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+          }}
+        >
           {payload.concepts.map((concept, index) => (
-            <li key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}>
+            <li
+              key={index}
+              style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1rem' }}
+            >
               <div style={{ fontWeight: 600 }}>{concept.concept}</div>
               <p style={{ color: '#374151', margin: '0.35rem 0 0.5rem' }}>{concept.explanation}</p>
               {concept.relatedFigures.length > 0 && (
@@ -110,12 +190,28 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
       {payload.quizSeeds?.length ? (
         <div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>퀴즈 시드</h3>
-          <ul style={{ listStyle: 'none', margin: '0.75rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: '0.75rem 0 0',
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+            }}
+          >
             {payload.quizSeeds.map((seed, index) => (
-              <li key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '0.9rem' }}>
-                <div style={{ fontWeight: 600 }}>{seed.topic} ({seed.difficulty})</div>
+              <li
+                key={index}
+                style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '0.9rem' }}
+              >
+                <div style={{ fontWeight: 600 }}>
+                  {seed.topic} ({seed.difficulty})
+                </div>
                 {seed.pitfalls.length > 0 && (
-                  <p style={{ color: '#374151', marginTop: '0.35rem' }}>주의 포인트: {seed.pitfalls.join(', ')}</p>
+                  <p style={{ color: '#374151', marginTop: '0.35rem' }}>
+                    주의 포인트: {seed.pitfalls.join(', ')}
+                  </p>
                 )}
               </li>
             ))}
@@ -134,7 +230,14 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
 
   if (!quiz) {
     return (
-      <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', background: '#fff' }}>
+      <section
+        style={{
+          border: '1px solid #e5e7eb',
+          borderRadius: '0.75rem',
+          padding: '1.25rem',
+          background: '#fff',
+        }}
+      >
         <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>퀴즈</h2>
         <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>생성된 퀴즈가 없습니다.</p>
       </section>
@@ -145,7 +248,7 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
   const items = quizSet.items;
   const current = items[index];
 
-  const score = answers.reduce((total, answer, idx) => {
+  const score = answers.reduce<number>((total, answer, idx) => {
     if (answer === null) return total;
     return total + (items[idx].answer === answer ? 1 : 0);
   }, 0);
@@ -186,23 +289,53 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
   };
 
   return (
-    <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <section
+      style={{
+        border: '1px solid #e5e7eb',
+        borderRadius: '0.75rem',
+        padding: '1.5rem',
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.25rem',
+      }}
+    >
       <header style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
         <h2 style={{ fontSize: '1.35rem', fontWeight: 700 }}>퀴즈</h2>
         <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-          모델 {quiz.model} · 생성일 {formatDate(quiz.createdAt)} · 현재 {index + 1}/{items.length}번 문항
+          모델 {quiz.model} · 생성일 {formatDate(quiz.createdAt)} · 현재 {index + 1}/{items.length}
+          번 문항
         </p>
       </header>
 
       {showScore && (
-        <div style={{ background: '#ecfdf5', borderRadius: '0.75rem', padding: '1rem', color: '#047857', fontWeight: 600 }}>
+        <div
+          style={{
+            background: '#ecfdf5',
+            borderRadius: '0.75rem',
+            padding: '1rem',
+            color: '#047857',
+            fontWeight: 600,
+          }}
+        >
           최종 점수: {score} / {items.length}
         </div>
       )}
 
-      <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div
+        style={{
+          border: '1px solid #e5e7eb',
+          borderRadius: '0.75rem',
+          padding: '1.25rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+        }}
+      >
         <div>
-          <div style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '0.5rem' }}>{current.difficulty.toUpperCase()} · {current.tags.join(', ')}</div>
+          <div style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+            {current.difficulty.toUpperCase()} · {current.tags.join(', ')}
+          </div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>{current.stem}</h3>
         </div>
 
@@ -236,7 +369,9 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
                 }}
                 disabled={revealedState}
               >
-                <strong style={{ marginRight: '0.5rem' }}>{String.fromCharCode(65 + optionIndex)}.</strong>
+                <strong style={{ marginRight: '0.5rem' }}>
+                  {String.fromCharCode(65 + optionIndex)}.
+                </strong>
                 {option}
               </button>
             );
@@ -244,17 +379,49 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
         </div>
 
         {revealed[index] && (
-          <div style={{ background: '#f8fafc', borderRadius: '0.75rem', padding: '1rem', color: '#1f2937' }}>
+          <div
+            style={{
+              background: '#f8fafc',
+              borderRadius: '0.75rem',
+              padding: '1rem',
+              color: '#1f2937',
+            }}
+          >
             <strong style={{ display: 'block', marginBottom: '0.35rem' }}>정답 해설</strong>
             <p style={{ margin: 0 }}>{current.rationale}</p>
-            <div style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '0.6rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <span>PDF: {current.sourceRef.pdfPages?.length ? current.sourceRef.pdfPages.join(', ') : '—'}</span>
-              <span>타임스탬프: {current.sourceRef.timestamps?.length ? current.sourceRef.timestamps.join(', ') : '—'}</span>
+            <div
+              style={{
+                color: '#6b7280',
+                fontSize: '0.85rem',
+                marginTop: '0.6rem',
+                display: 'flex',
+                gap: '1rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span>
+                PDF:{' '}
+                {current.sourceRef.pdfPages?.length ? current.sourceRef.pdfPages.join(', ') : '—'}
+              </span>
+              <span>
+                타임스탬프:{' '}
+                {current.sourceRef.timestamps?.length
+                  ? current.sourceRef.timestamps.join(', ')
+                  : '—'}
+              </span>
             </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+          }}
+        >
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               type="button"
@@ -313,7 +480,17 @@ function JobHistory({ jobs }: { jobs?: LectureDetail['jobs'] }) {
   }
 
   return (
-    <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', background: '#fff', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+    <section
+      style={{
+        border: '1px solid #e5e7eb',
+        borderRadius: '0.75rem',
+        padding: '1.25rem',
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem',
+      }}
+    >
       <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>잡 이력</h2>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '720px' }}>
@@ -330,10 +507,31 @@ function JobHistory({ jobs }: { jobs?: LectureDetail['jobs'] }) {
             {jobs.map((job) => (
               <tr key={job.id}>
                 <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>{job.type}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', color: job.status === 'SUCCEEDED' ? '#15803d' : job.status === 'NEEDS_ATTENTION' || job.status === 'FAILED' ? '#dc2626' : '#1f2937' }}>{job.status}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>{formatDate(job.startedAt)}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>{formatDate(job.completedAt)}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', color: '#dc2626' }}>{job.lastError ?? '—'}</td>
+                <td
+                  style={{
+                    padding: '0.5rem',
+                    borderBottom: '1px solid #e5e7eb',
+                    color:
+                      job.status === 'SUCCEEDED'
+                        ? '#15803d'
+                        : job.status === 'NEEDS_ATTENTION' || job.status === 'FAILED'
+                          ? '#dc2626'
+                          : '#1f2937',
+                  }}
+                >
+                  {job.status}
+                </td>
+                <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                  {formatDate(job.startedAt)}
+                </td>
+                <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                  {formatDate(job.completedAt)}
+                </td>
+                <td
+                  style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', color: '#dc2626' }}
+                >
+                  {job.lastError ?? '—'}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -372,13 +570,26 @@ export default function LectureDetailPage() {
   };
 
   return (
-    <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1.5rem 4rem', display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <main
+      style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        padding: '2rem 1.5rem 4rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.75rem',
+      }}
+    >
       <header style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
         <Link href="/dashboard" style={{ color: '#2563eb', fontSize: '0.95rem' }}>
           ← 대시보드로 돌아가기
         </Link>
         {isLoading && <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>강의 로딩 중...</h1>}
-        {error && <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#dc2626' }}>강의를 불러올 수 없습니다.</h1>}
+        {error && (
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#dc2626' }}>
+            강의를 불러올 수 없습니다.
+          </h1>
+        )}
         {data && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>{data.title}</h1>

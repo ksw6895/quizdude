@@ -1,8 +1,25 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "incremental": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@quizdude/shared": ["../../packages/shared/src/index.ts"],
+      "@quizdude/shared/*": ["../../packages/shared/src/*"],
+      "@quizdude/db": ["../../packages/db/src/index.ts"],
+      "@quizdude/db/*": ["../../packages/db/src/*"],
+      "@quizdude/config/*": ["../../packages/shared/src/config/*"],
+      "@quizdude/storage/*": ["../../packages/shared/src/storage/*"],
+      "@quizdude/schemas/*": ["../../packages/shared/src/schemas/*"]
+    }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

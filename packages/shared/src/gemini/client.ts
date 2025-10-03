@@ -1,4 +1,8 @@
-import { GEMINI_MAX_DEFAULT_BYTES, GEMINI_MAX_PDF_BYTES, getGeminiConfig } from '../config/gemini.js';
+import {
+  GEMINI_MAX_DEFAULT_BYTES,
+  GEMINI_MAX_PDF_BYTES,
+  getGeminiConfig,
+} from '../config/gemini.js';
 import type { JsonSchema } from '../schemas/jsonSchemas.js';
 import { GeminiApiError, GeminiModelUnavailableError } from './errors.js';
 import type {
@@ -15,9 +19,7 @@ export interface GeminiClientOptions {
   uploadBaseUrl?: string;
 }
 
-const PDF_MIME_TYPES = new Set([
-  'application/pdf',
-]);
+const PDF_MIME_TYPES = new Set(['application/pdf']);
 
 export class GeminiClient {
   private readonly apiKey: string;
@@ -39,18 +41,18 @@ export class GeminiClient {
     const url = `${this.apiBaseUrl}/v1beta/models/${encodeURIComponent(model)}?key=${this.apiKey}`;
     const response = await fetch(url, { method: 'GET' });
     if (!response.ok) {
-      const details = await response
-        .json()
-        .catch(() => ({ statusText: response.statusText }));
+      const details = await response.json().catch(() => ({ statusText: response.statusText }));
       throw new GeminiModelUnavailableError(model, response.status, details);
     }
     this.availableModels.add(model);
   }
 
   public async uploadFile(args: GeminiFileUploadArgs): Promise<GeminiUploadedFile> {
-    const data = args.data instanceof Uint8Array ? args.data : new Uint8Array(args.data);
-    const sizeBytes = args.sizeBytes ?? data.byteLength;
-    const maxBytes = args.maxBytes ?? (PDF_MIME_TYPES.has(args.mimeType) ? GEMINI_MAX_PDF_BYTES : GEMINI_MAX_DEFAULT_BYTES);
+    const bytes = args.data instanceof Uint8Array ? args.data : new Uint8Array(args.data);
+    const sizeBytes = args.sizeBytes ?? bytes.byteLength;
+    const maxBytes =
+      args.maxBytes ??
+      (PDF_MIME_TYPES.has(args.mimeType) ? GEMINI_MAX_PDF_BYTES : GEMINI_MAX_DEFAULT_BYTES);
 
     if (sizeBytes > maxBytes) {
       throw new GeminiApiError(
@@ -74,7 +76,11 @@ export class GeminiClient {
 
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', new Blob([data], { type: args.mimeType }), args.displayName);
+    form.append(
+      'file',
+      new Blob([new Uint8Array(bytes)], { type: args.mimeType }),
+      args.displayName,
+    );
 
     const url = `${this.uploadBaseUrl}/v1beta/files?uploadType=multipart&key=${this.apiKey}`;
     const response = await fetch(url, {
@@ -82,9 +88,7 @@ export class GeminiClient {
       body: form,
     });
 
-    const payload = await response
-      .json()
-      .catch(() => ({ statusText: response.statusText }));
+    const payload = await response.json().catch(() => ({ statusText: response.statusText }));
 
     if (!response.ok) {
       throw new GeminiApiError('Failed to upload file to Gemini', {
@@ -95,7 +99,12 @@ export class GeminiClient {
 
     const file = (payload.file ?? payload) as Record<string, unknown>;
 
-    const name = typeof file.name === 'string' ? file.name : typeof payload.name === 'string' ? payload.name : '';
+    const name =
+      typeof file.name === 'string'
+        ? file.name
+        : typeof payload.name === 'string'
+          ? payload.name
+          : '';
     const uri = typeof file.uri === 'string' ? file.uri : name;
     const mimeType = typeof file.mimeType === 'string' ? file.mimeType : args.mimeType;
     const reportedSize = Number(file.sizeBytes ?? payload.sizeBytes ?? sizeBytes);
@@ -108,7 +117,9 @@ export class GeminiClient {
     };
   }
 
-  public async generateContent<T>(options: GenerateContentOptions): Promise<GenerateContentResult<T>> {
+  public async generateContent<T>(
+    options: GenerateContentOptions,
+  ): Promise<GenerateContentResult<T>> {
     const model = options.model;
     await this.ensureModelAvailable(model);
 
@@ -136,9 +147,7 @@ export class GeminiClient {
       body: JSON.stringify(payload),
     });
 
-    const body = await response
-      .json()
-      .catch(() => ({ statusText: response.statusText }));
+    const body = await response.json().catch(() => ({ statusText: response.statusText }));
 
     if (!response.ok) {
       throw new GeminiApiError('Gemini generateContent call failed', {

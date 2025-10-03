@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import type { DragEvent, FormEvent } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
+import { put } from '@vercel/blob/client';
 
 import {
   createLecture,
@@ -82,7 +84,12 @@ function statusColor(status?: string | null) {
 }
 
 export default function DashboardPage() {
-  const { data: lectures, error, isLoading, mutate } = useSWR<LectureListItem[]>('lectures', fetchLectures, {
+  const {
+    data: lectures,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<LectureListItem[]>('lectures', fetchLectures, {
     refreshInterval: POLL_INTERVAL_MS,
   });
 
@@ -96,7 +103,6 @@ export default function DashboardPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const hasPdf = useMemo(() => selectedFiles.some((file) => file.kind === 'pdf'), [selectedFiles]);
   const hasMedia = useMemo(
     () => selectedFiles.some((file) => file.kind === 'audio' || file.kind === 'video'),
     [selectedFiles],
@@ -108,7 +114,11 @@ export default function DashboardPage() {
       let next = [...prev];
       Array.from(files).forEach((file) => {
         const kind = detectKind(file);
-        const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+        const hasCrypto =
+          typeof globalThis.crypto !== 'undefined' && 'randomUUID' in globalThis.crypto;
+        const id = hasCrypto
+          ? globalThis.crypto.randomUUID()
+          : `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
 
         if (kind === 'pdf') {
           next = next.filter((item) => item.kind !== 'pdf');
@@ -125,7 +135,7 @@ export default function DashboardPage() {
   }, []);
 
   const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
+    (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
       setIsDragging(false);
@@ -134,13 +144,13 @@ export default function DashboardPage() {
     [addFiles],
   );
 
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
@@ -159,7 +169,7 @@ export default function DashboardPage() {
   }, []);
 
   const handleSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       setFeedback(null);
       setErrorMessage(null);
@@ -176,7 +186,9 @@ export default function DashboardPage() {
 
       try {
         setSubmitting(true);
-        setSelectedFiles((prev) => prev.map((file) => ({ ...file, status: 'pending', message: undefined })));
+        setSelectedFiles((prev) =>
+          prev.map((file) => ({ ...file, status: 'pending', message: undefined })),
+        );
 
         const modality = determineModality(selectedFiles);
         const payload: CreateLecturePayload = {
@@ -217,18 +229,11 @@ export default function DashboardPage() {
           });
 
           try {
-            const res = await fetch(upload.url, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': match.file.type || 'application/octet-stream',
-                Authorization: `Bearer ${upload.token}`,
-              },
-              body: match.file,
+            const result = await put(upload.pathname, match.file, {
+              token: upload.token,
+              access: 'public',
+              contentType: match.file.type || 'application/octet-stream',
             });
-
-            if (!res.ok) {
-              throw new Error(`Upload failed with status ${res.status}`);
-            }
 
             await updateUploadStatus(lectureId, {
               uploads: [
@@ -238,6 +243,7 @@ export default function DashboardPage() {
                   sizeBytes: match.file.size,
                   metadata: {
                     originalFilename: match.file.name,
+                    blobUrl: result.url,
                   },
                 },
               ],
@@ -284,7 +290,9 @@ export default function DashboardPage() {
         }
 
         const pdfUploadTarget = uploads.find((item) => item.kind === 'pdf');
-        const audioOrVideoUpload = uploads.find((item) => item.kind === 'audio' || item.kind === 'video');
+        const audioOrVideoUpload = uploads.find(
+          (item) => item.kind === 'audio' || item.kind === 'video',
+        );
         const transcriptUpload = uploads.find((item) => item.kind === 'transcript');
 
         if (pdfUploadTarget || transcriptUpload) {
@@ -307,16 +315,7 @@ export default function DashboardPage() {
         mutate();
       }
     },
-    [
-      title,
-      description,
-      language,
-      selectedFiles,
-      audioPipeline,
-      hasMedia,
-      resetForm,
-      mutate,
-    ],
+    [title, description, language, selectedFiles, audioPipeline, hasMedia, resetForm, mutate],
   );
 
   const rerunSummary = useCallback(
@@ -344,7 +343,16 @@ export default function DashboardPage() {
   );
 
   return (
-    <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem 4rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <main
+      style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '2rem 1.5rem 4rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2rem',
+      }}
+    >
       <header style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>업로드 대시보드</h1>
         <p style={{ color: '#4b5563' }}>
@@ -352,26 +360,50 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      <section style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', background: '#f9fafb' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>새 강의 업로드</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <section
+        style={{
+          border: '1px solid #e5e7eb',
+          borderRadius: '0.75rem',
+          padding: '1.5rem',
+          background: '#f9fafb',
+        }}
+      >
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>
+          새 강의 업로드
+        </h2>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        >
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <label style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label
+              style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+            >
               <span style={{ fontWeight: 600 }}>제목 *</span>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 required
-                style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #d1d5db',
+                }}
                 placeholder="예: 2025년 1학기 AI 개론 3주차"
               />
             </label>
-            <label style={{ width: '160px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label
+              style={{ width: '160px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+            >
               <span style={{ fontWeight: 600 }}>언어</span>
               <input
                 value={language}
                 onChange={(event) => setLanguage(event.target.value)}
-                style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #d1d5db',
+                }}
                 placeholder="ko"
               />
             </label>
@@ -382,7 +414,12 @@ export default function DashboardPage() {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={3}
-              style={{ padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #d1d5db', resize: 'vertical' }}
+              style={{
+                padding: '0.75rem',
+                borderRadius: '0.75rem',
+                border: '1px solid #d1d5db',
+                resize: 'vertical',
+              }}
               placeholder="강의 요약, 챕터, 강사 정보를 남기면 요약 품질에 도움이 됩니다."
             />
           </label>
@@ -433,7 +470,16 @@ export default function DashboardPage() {
           {selectedFiles.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>선택된 파일</h3>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <ul
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                }}
+              >
                 {selectedFiles.map((item) => (
                   <li
                     key={item.id}
@@ -450,9 +496,16 @@ export default function DashboardPage() {
                     <div>
                       <div style={{ fontWeight: 600 }}>{item.file.name}</div>
                       <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                        {item.kind.toUpperCase()} · {(item.file.size / (1024 * 1024)).toFixed(2)} MB · {item.file.type || 'unknown'}
+                        {item.kind.toUpperCase()} · {(item.file.size / (1024 * 1024)).toFixed(2)} MB
+                        · {item.file.type || 'unknown'}
                       </div>
-                      <div style={{ color: statusColor(item.status), fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                      <div
+                        style={{
+                          color: statusColor(item.status),
+                          fontSize: '0.85rem',
+                          marginTop: '0.25rem',
+                        }}
+                      >
                         {item.status === 'pending' && '대기 중'}
                         {item.status === 'uploading' && '업로드 중...'}
                         {item.status === 'uploaded' && '업로드 완료'}
@@ -486,7 +539,9 @@ export default function DashboardPage() {
                 checked={audioPipeline}
                 onChange={(event) => setAudioPipeline(event.target.checked)}
               />
-              <span style={{ fontSize: '0.95rem' }}>오디오/비디오 전사 파이프라인 실행 (ElevenLabs)</span>
+              <span style={{ fontSize: '0.95rem' }}>
+                오디오/비디오 전사 파이프라인 실행 (ElevenLabs)
+              </span>
             </label>
           )}
 
@@ -532,7 +587,9 @@ export default function DashboardPage() {
         </div>
         {isLoading && <p>데이터를 불러오는 중...</p>}
         {error && <p style={{ color: '#dc2626' }}>강의 목록을 불러올 수 없습니다.</p>}
-        {lectures && lectures.length === 0 && <p style={{ color: '#6b7280' }}>등록된 강의가 없습니다.</p>}
+        {lectures && lectures.length === 0 && (
+          <p style={{ color: '#6b7280' }}>등록된 강의가 없습니다.</p>
+        )}
         {lectures && lectures.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {lectures.map((lecture) => (
@@ -550,20 +607,37 @@ export default function DashboardPage() {
               >
                 <div>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>{lecture.title}</h3>
-                  <p style={{ color: '#6b7280', margin: '0.25rem 0' }}>{lecture.description ?? '설명 없음'}</p>
+                  <p style={{ color: '#6b7280', margin: '0.25rem 0' }}>
+                    {lecture.description ?? '설명 없음'}
+                  </p>
                   <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                    {lecture.language.toUpperCase()} · {lecture.modality} · 생성일 {formatDate(lecture.createdAt)}
+                    {lecture.language.toUpperCase()} · {lecture.modality} · 생성일{' '}
+                    {formatDate(lecture.createdAt)}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                   <div style={{ flex: '1 1 220px' }}>
                     <strong>업로드</strong>
-                    <ul style={{ listStyle: 'none', margin: '0.35rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <ul
+                      style={{
+                        listStyle: 'none',
+                        margin: '0.35rem 0 0',
+                        padding: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.25rem',
+                      }}
+                    >
                       {lecture.uploads.map((upload) => (
-                        <li key={upload.id} style={{ color: statusColor(upload.status), fontSize: '0.9rem' }}>
+                        <li
+                          key={upload.id}
+                          style={{ color: statusColor(upload.status), fontSize: '0.9rem' }}
+                        >
                           {upload.type}: {upload.status}{' '}
-                          {upload.sizeBytes ? `(${(upload.sizeBytes / (1024 * 1024)).toFixed(1)} MB)` : ''}
+                          {upload.sizeBytes
+                            ? `(${(upload.sizeBytes / (1024 * 1024)).toFixed(1)} MB)`
+                            : ''}
                         </li>
                       ))}
                     </ul>
@@ -572,7 +646,8 @@ export default function DashboardPage() {
                     <strong>요약</strong>
                     {lecture.latestSummary ? (
                       <div style={{ color: '#1f2937', fontSize: '0.95rem' }}>
-                        {lecture.latestSummary.meta ? '생성됨' : '대기 중'} · 모델 {lecture.latestSummary.model}
+                        {lecture.latestSummary.meta ? '생성됨' : '대기 중'} · 모델{' '}
+                        {lecture.latestSummary.model}
                         <br />
                         {formatDate(lecture.latestSummary.createdAt)}
                       </div>
@@ -594,11 +669,23 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ flex: '1 1 220px' }}>
                     <strong>잡 상태</strong>
-                    <ul style={{ listStyle: 'none', margin: '0.35rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <ul
+                      style={{
+                        listStyle: 'none',
+                        margin: '0.35rem 0 0',
+                        padding: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.25rem',
+                      }}
+                    >
                       {['summarize', 'quiz', 'transcribe'].map((key) => {
                         const job = lecture.jobs[key];
                         return (
-                          <li key={key} style={{ color: statusColor(job?.status), fontSize: '0.9rem' }}>
+                          <li
+                            key={key}
+                            style={{ color: statusColor(job?.status), fontSize: '0.9rem' }}
+                          >
                             {key}: {job ? job.status : '—'}
                           </li>
                         );
