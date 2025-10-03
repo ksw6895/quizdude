@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "pnpm --filter \"@quizdude/*\" run build",
+    "build:packages": "pnpm --filter \"@quizdude/*\" run build",
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm run build:packages && next build",
     "start": "next start",
     "lint": "next lint"
   },
