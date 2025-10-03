@@ -20,23 +20,24 @@ Node.js 20 이상 + pnpm 8.x(Corepack 권장)를 기본 런타임으로 사용�
 1. **Node.js**: v20 LTS 이상 설치. `corepack enable`로 pnpm 사용 권장.
 2. **Database**: PostgreSQL 인스턴스. 로컬 개발 시 Docker 등으로 `postgresql://USER:PASSWORD@HOST:PORT/quizdude` 형태의 커넥션 준비.
 3. **Google Gemini API**: File API & Models API가 활성화된 API 키.
-4. **Vercel Blob**: 업로드 URL 발급을 위한 `VERCEL_BLOB_WRITE_TOKEN`과 `VERCEL_BLOB_READ_WRITE_URL`.
+4. **Vercel Blob**: 스토어 생성 시 자동으로 주입되는 `BLOB_READ_WRITE_TOKEN`(서버용)과, 클라이언트 업로드 콜백을 위한 `VERCEL_BLOB_CALLBACK_URL`(선택).
 5. _(선택)_ **ElevenLabs Scribe v1**: 오디오/비디오 전사 기능 사용 시 API Key 및 Webhook Secret.
 
 ## 환경 변수 설정
 
 루트에 `.env`를 생성하고 `.env.example`를 참고해 채워 넣습니다. 주요 항목은 아래와 같습니다.
 
-| 변수                                                    | 설명                                                                                           |
-| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                                          | Prisma가 사용하는 PostgreSQL 연결 문자열                                                       |
-| `GEMINI_API_KEY`                                        | Gemini API 키                                                                                  |
-| `GEMINI_MODEL_ID`                                       | 기본 모델 문자열. 기본값 `gemini-flash-latest`이며 워커가 Models API로 존재 여부를 검증합니다. |
-| `ENABLE_AUDIO_PIPELINE`                                 | 오디오/비디오 전사 파이프라인 전역 플래그 (`true`/`false`).                                    |
-| `VERCEL_BLOB_WRITE_TOKEN`, `VERCEL_BLOB_READ_WRITE_URL` | 업로드 URL 발급/다운로드용 토큰                                                                |
-| `NEXT_PUBLIC_ORCHESTRATOR_URL`                          | 웹 앱에서 오케스트레이터 API를 호출할 기본 URL (예: `http://localhost:3001`)                   |
-| `NEXT_PUBLIC_APP_URL`                                   | 웹 애플리케이션 기본 URL                                                                       |
-| `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET`       | 오디오 파이프라인 사용 시 필요                                                                 |
+| 변수                                              | 설명                                                                                           |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                    | Prisma가 사용하는 PostgreSQL 연결 문자열                                                       |
+| `GEMINI_API_KEY`                                  | Gemini API 키                                                                                  |
+| `GEMINI_MODEL_ID`                                 | 기본 모델 문자열. 기본값 `gemini-flash-latest`이며 워커가 Models API로 존재 여부를 검증합니다. |
+| `ENABLE_AUDIO_PIPELINE`                           | 오디오/비디오 전사 파이프라인 전역 플래그 (`true`/`false`).                                    |
+| `BLOB_READ_WRITE_TOKEN`                           | Vercel Blob 서버용 RW 토큰 (스토어 생성 시 자동 주입)                                          |
+| `VERCEL_BLOB_CALLBACK_URL`                        | (선택) Blob 업로드 완료 콜백(ngrok 등) URL                                                     |
+| `NEXT_PUBLIC_ORCHESTRATOR_URL`                    | 웹 앱에서 오케스트레이터 API를 호출할 기본 URL (예: `http://localhost:3001`)                   |
+| `NEXT_PUBLIC_APP_URL`                             | 웹 애플리케이션 기본 URL                                                                       |
+| `ELEVENLABS_API_KEY`, `ELEVENLABS_WEBHOOK_SECRET` | 오디오 파이프라인 사용 시 필요                                                                 |
 
 > **TIP**: 로컬 개발 시 `NEXT_PUBLIC_ORCHESTRATOR_URL`은 웹 앱이 접근 가능한 외부 주소여야 합니다. 동일 머신에서 실행할 경우 `http://localhost:3001`로 설정하고 오케스트레이터를 3001 포트에서 띄우면 됩니다.
 
@@ -102,14 +103,12 @@ pnpm --filter @quizdude/db migrate
 - PostgreSQL 인스턴스(예: Render PostgreSQL, Neon, Supabase). 접속 URL을 미리 복사하세요.
 - (선택) ElevenLabs API 키 & Webhook Secret — 오디오 파이프라인을 쓸 때만 필요합니다.
 
-### 1. Vercel Blob 저장소 및 토큰 만들기
+### 1. Vercel Blob 저장소 생성
 
 1. https://vercel.com 에 로그인 → 왼쪽 메뉴 **Storage → Blob** 클릭.
-2. **Create Store** 버튼 → 이름은 `quizdude-artifacts` 등 직관적인 값으로 입력 → 지역은 기본값 사용.
-3. 생성된 스토어 상세 페이지에서 **Access Tokens → Create**.
-   - `Read/Write` 유형 토큰을 만들고 `BLOB_READ_WRITE_URL` 값을 복사합니다.
-   - `Write` 유형 토큰도 하나 더 만들어 `WRITE_ONLY_TOKEN` 값을 복사합니다.
-4. 두 값을 안전한 메모장(예: 1Password, Notion 임시 페이지)에 붙여넣고, 사용 후 반드시 삭제하세요.
+2. **Create Store** 버튼 → 이름은 `quizdude-artifacts` 등 직관적인 값으로 입력 → 사용자와 가까운 리전을 선택합니다.
+3. 스토어가 생성되면 해당 프로젝트의 **Settings → Environment Variables**에 `BLOB_READ_WRITE_TOKEN` 항목이 자동으로 추가됩니다.
+4. 클라이언트 직접 업로드를 지원하고 콜백이 필요하다면 나중에 `VERCEL_BLOB_CALLBACK_URL`을 설정할 수 있도록 ngrok 등 외부 URL을 준비해 둡니다.
 
 ### 2. Vercel에 웹 애플리케이션(`apps/web`) 배포하기
 
@@ -128,8 +127,8 @@ pnpm --filter @quizdude/db migrate
 | ------------------------------ | ------------------------------------------ | -------------------------------------------------- |
 | `NEXT_PUBLIC_APP_URL`          | `https://quizdude-web.vercel.app`          | 웹 도메인. 커스텀 도메인 연결 후 해당 주소로 교체. |
 | `NEXT_PUBLIC_ORCHESTRATOR_URL` | `https://quizdude-orchestrator.vercel.app` | 오케스트레이터 URL (다음 단계에서 생성).           |
-| `VERCEL_BLOB_READ_WRITE_URL`   | `https://...`                              | 1단계에서 복사한 Read/Write URL.                   |
-| `VERCEL_BLOB_WRITE_TOKEN`      | `vercel_blob_wr_...`                       | 1단계에서 복사한 Write 토큰.                       |
+| `BLOB_READ_WRITE_TOKEN`        | 자동 생성 (Vercel 대시보드 확인)           | Blob 서버 토큰. 프로젝트 생성 시 자동 주입됨.      |
+| `VERCEL_BLOB_CALLBACK_URL`     | (선택) `https://<ngrok>.ngrok.io/api/...`  | Blob 업로드 콜백이 필요할 때만 입력.               |
 
 8. **Deploy** 버튼을 누르면 빌드가 시작됩니다. 빌드가 끝나면 `Visit`을 눌러 페이지가 정상적으로 열리는지 확인하세요.
 9. 배포 후 **Settings → Observability**로 이동해 Vercel Observability를 켜고, Slack/이메일 알림을 등록해 둡니다.
@@ -146,8 +145,8 @@ pnpm --filter @quizdude/db migrate
 | `DATABASE_URL`                 | `postgresql://user:pass@host:5432/quizdude` | 운영용 PostgreSQL 연결 문자열.                       |
 | `GEMINI_API_KEY`               | `sk-...`                                    | Google Gemini API 키.                                |
 | `GEMINI_MODEL_ID`              | `gemini-flash-latest`                       | 모델 이름. 필요 시 Google 콘솔에서 최신 모델로 교체. |
-| `VERCEL_BLOB_READ_WRITE_URL`   | `https://...`                               | Blob Read/Write URL (웹과 동일).                     |
-| `VERCEL_BLOB_WRITE_TOKEN`      | `vercel_blob_wr_...`                        | Blob Write 토큰 (웹과 동일).                         |
+| `BLOB_READ_WRITE_TOKEN`        | 자동 생성 (Vercel 대시보드 확인)            | Blob 서버 토큰. 웹 프로젝트와 동일 값 사용.          |
+| `VERCEL_BLOB_CALLBACK_URL`     | (선택) `https://<ngrok>.ngrok.io/api/...`   | Blob 업로드 콜백 URL. 필요 시에만 설정.              |
 | `ENABLE_AUDIO_PIPELINE`        | `false` (또는 `true`)                       | 오디오 기능이 필요하면 `true`.                       |
 | `NEXT_PUBLIC_APP_URL`          | `https://quizdude-web.vercel.app`           | 웹 앱 기본 URL.                                      |
 | `NEXT_PUBLIC_ORCHESTRATOR_URL` | `https://quizdude-orchestrator.vercel.app`  | 자기 자신 URL.                                       |

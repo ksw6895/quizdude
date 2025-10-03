@@ -17,9 +17,9 @@ This runbook describes how to deploy Quizdude to production and keep it healthy.
    - Record connection URL (`postgresql://USER:PASSWORD@HOST:PORT/quizdude`).
    - Enable automated backups and retention >= 7 days.
 2. **Vercel Blob Store**
-   - In Vercel dashboard go to _Storage → Blob_ and create a store named `quizdude-artifacts` (any region).
-   - Generate a _Read/Write Token_ and copy the `BLOB_READ_WRITE_URL` + token.
-   - Generate a _Write Token_ for uploads from the orchestrator.
+   - In the Vercel dashboard go to _Storage → Blob_ and create a store named `quizdude-artifacts` (choose a region close to users).
+   - Once the store is created, Vercel automatically injects a `BLOB_READ_WRITE_TOKEN` environment variable into the project; no manual token generation step is required.
+   - If client uploads need to notify a local tunnel (ngrok, etc.), plan to set `VERCEL_BLOB_CALLBACK_URL` later in the orchestrator project.
 3. **ElevenLabs (Optional)**
    - Create API key if audio pipeline will be used.
    - Create webhook secret and configure the callback URL later after deploying the orchestrator.
@@ -42,8 +42,8 @@ Quizdude uses two Next.js apps in the same monorepo. Create two Vercel projects 
 | ------------------------------ | ------------------------------- | ------------------------------------------------------- |
 | `NEXT_PUBLIC_APP_URL`          | `https://<your-web-domain>`     | Use Vercel domain or custom domain after DNS completes. |
 | `NEXT_PUBLIC_ORCHESTRATOR_URL` | `https://<orchestrator-domain>` | Must match deployed orchestrator base URL.              |
-| `VERCEL_BLOB_READ_WRITE_URL`   | copied from Blob store          | Shared with orchestrator + worker.                      |
-| `VERCEL_BLOB_WRITE_TOKEN`      | write token from Blob store     | Same token as orchestrator.                             |
+| `BLOB_READ_WRITE_TOKEN`        | auto-created with Blob store    | Vercel injects this token automatically.                |
+| `VERCEL_BLOB_CALLBACK_URL`     | optional ngrok callback URL     | Only needed for client uploads with callbacks.          |
 
 5. Add _Environment Variable Groups_ in Vercel (optional) so the Blob values stay in sync across projects.
 6. Deploy. Confirm build succeeds and UI loads with maintenance banner (no API calls yet).
@@ -55,18 +55,18 @@ Quizdude uses two Next.js apps in the same monorepo. Create two Vercel projects 
 2. Build settings identical to above (`pnpm install`, `pnpm run build`).
 3. Environment variables:
 
-| Key                            | Value                           | Notes                                     |
-| ------------------------------ | ------------------------------- | ----------------------------------------- |
-| `DATABASE_URL`                 | Postgres connection URL         | Same URL used by worker.                  |
-| `GEMINI_API_KEY`               | Gemini API key                  | Keep secret; use Vercel _Encrypted_ type. |
-| `GEMINI_MODEL_ID`              | `gemini-flash-latest` (default) | Update when migrating models.             |
-| `VERCEL_BLOB_READ_WRITE_URL`   | Blob RW URL                     | Must match web + worker.                  |
-| `VERCEL_BLOB_WRITE_TOKEN`      | Blob write token                | Required to mint upload URLs.             |
-| `ENABLE_AUDIO_PIPELINE`        | `true` or `false`               | Toggle before deployment.                 |
-| `NEXT_PUBLIC_APP_URL`          | `https://<your-web-domain>`     | Enables absolute links in API responses.  |
-| `NEXT_PUBLIC_ORCHESTRATOR_URL` | `https://<orchestrator-domain>` | Self-reference for API docs & SWR.        |
-| `ELEVENLABS_API_KEY`           | optional                        | Only if audio pipeline on.                |
-| `ELEVENLABS_WEBHOOK_SECRET`    | optional                        | Only if audio pipeline on.                |
+| Key                            | Value                           | Notes                                       |
+| ------------------------------ | ------------------------------- | ------------------------------------------- |
+| `DATABASE_URL`                 | Postgres connection URL         | Same URL used by worker.                    |
+| `GEMINI_API_KEY`               | Gemini API key                  | Keep secret; use Vercel _Encrypted_ type.   |
+| `GEMINI_MODEL_ID`              | `gemini-flash-latest` (default) | Update when migrating models.               |
+| `BLOB_READ_WRITE_TOKEN`        | Blob RW token                   | Injected automatically with the Blob store. |
+| `VERCEL_BLOB_CALLBACK_URL`     | optional callback URL           | Needed for client upload completion hooks.  |
+| `ENABLE_AUDIO_PIPELINE`        | `true` or `false`               | Toggle before deployment.                   |
+| `NEXT_PUBLIC_APP_URL`          | `https://<your-web-domain>`     | Enables absolute links in API responses.    |
+| `NEXT_PUBLIC_ORCHESTRATOR_URL` | `https://<orchestrator-domain>` | Self-reference for API docs & SWR.          |
+| `ELEVENLABS_API_KEY`           | optional                        | Only if audio pipeline on.                  |
+| `ELEVENLABS_WEBHOOK_SECRET`    | optional                        | Only if audio pipeline on.                  |
 
 4. After first successful deploy, under _Settings → Functions_ ensure the default region matches your database (latency optimization).
 5. Enable Observability for orchestrator as in `apps/web` and configure an alert for HTTP 5xx spikes (Vercel’s Analytics → Alerts → “Server Error Rate”).
@@ -87,18 +87,18 @@ Quizdude uses two Next.js apps in the same monorepo. Create two Vercel projects 
    ```
 6. Environment variables (copy from orchestrator where relevant):
 
-| Key                          | Value                            |
-| ---------------------------- | -------------------------------- |
-| `DATABASE_URL`               | Same Postgres URL                |
-| `GEMINI_API_KEY`             | Same as orchestrator             |
-| `GEMINI_MODEL_ID`            | Typically `gemini-flash-latest`  |
-| `VERCEL_BLOB_READ_WRITE_URL` | Same Blob URL                    |
-| `VERCEL_BLOB_WRITE_TOKEN`    | Same write token                 |
-| `ENABLE_AUDIO_PIPELINE`      | `true`/`false`                   |
-| `ELEVENLABS_API_KEY`         | optional                         |
-| `ELEVENLABS_WEBHOOK_SECRET`  | optional                         |
-| `JOB_POLL_INTERVAL_MS`       | optional override (default 5000) |
-| `JOB_MAX_ATTEMPTS`           | optional override (default 3)    |
+| Key                         | Value                            |
+| --------------------------- | -------------------------------- |
+| `DATABASE_URL`              | Same Postgres URL                |
+| `GEMINI_API_KEY`            | Same as orchestrator             |
+| `GEMINI_MODEL_ID`           | Typically `gemini-flash-latest`  |
+| `BLOB_READ_WRITE_TOKEN`     | Same token as orchestrator       |
+| `VERCEL_BLOB_CALLBACK_URL`  | optional callback URL            |
+| `ENABLE_AUDIO_PIPELINE`     | `true`/`false`                   |
+| `ELEVENLABS_API_KEY`        | optional                         |
+| `ELEVENLABS_WEBHOOK_SECRET` | optional                         |
+| `JOB_POLL_INTERVAL_MS`      | optional override (default 5000) |
+| `JOB_MAX_ATTEMPTS`          | optional override (default 3)    |
 
 7. Under _Advanced_ enable automatic deploys on the `main` branch.
 8. After first deploy, open the logs tab and confirm the worker reports `No job found, sleeping` or similar heartbeat.
