@@ -1,3 +1,5 @@
+const isVercel = Boolean(process.env.VERCEL);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -6,7 +8,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  output: 'standalone',
+  ...(isVercel ? {} : { output: 'standalone' }),
 };
 
 export default nextConfig;
