@@ -3,6 +3,7 @@ node_modules
 .env
 *.log
 .next
+.vercel
 out
 dist
 .DS_Store
