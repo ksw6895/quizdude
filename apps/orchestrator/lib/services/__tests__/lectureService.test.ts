@@ -35,7 +35,7 @@ const prismaMock = {
 
 const generateLectureUploadTargets = vi.fn();
 
-vi.mock('../../blobStorage.js', () => ({
+vi.mock('../../blobStorage', () => ({
   generateLectureUploadTargets,
 }));
 
@@ -79,7 +79,7 @@ describe('lectureService', () => {
     ]);
     uploadCreate.mockResolvedValue({ id: 'upload-1' });
 
-    const module = await import('../lectureService.js');
+    const module = await import('../lectureService');
     const result = await module.createLecture({
       title: 'Test lecture',
       description: 'desc',
@@ -123,7 +123,7 @@ describe('lectureService', () => {
     lectureFindUnique.mockResolvedValue({ id: 'lec-1' });
     jobRunFindFirst.mockResolvedValue({ id: 'job-1' });
 
-    const module = await import('../lectureService.js');
+    const module = await import('../lectureService');
 
     await expect(module.triggerSummarize('lec-1', { force: false })).rejects.toMatchObject({
       status: 409,
@@ -140,7 +140,7 @@ describe('lectureService', () => {
     jobRunFindFirst.mockResolvedValue(null);
     jobRunCreate.mockResolvedValue({ id: 'job-99' });
 
-    const module = await import('../lectureService.js');
+    const module = await import('../lectureService');
     const result = await module.triggerTranscription('lec-1', {});
 
     expect(jobRunCreate).toHaveBeenCalledWith(

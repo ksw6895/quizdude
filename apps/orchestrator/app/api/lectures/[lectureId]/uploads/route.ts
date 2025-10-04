@@ -1,5 +1,5 @@
-import { handleRoute } from '../../../../../lib/http.js';
-import { updateUploadStatuses } from '../../../../../lib/services/lectureService.js';
+import { handleRoute } from '../../../../../lib/http';
+import { updateUploadStatuses } from '../../../../../lib/services/lectureService';
 
 export async function PATCH(request: Request, { params }: { params: { lectureId: string } }) {
   return handleRoute(async () => {

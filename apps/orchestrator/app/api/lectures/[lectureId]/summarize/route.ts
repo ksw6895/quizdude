@@ -1,5 +1,5 @@
-import { handleRoute } from '../../../../../lib/http.js';
-import { triggerSummarize } from '../../../../../lib/services/lectureService.js';
+import { handleRoute } from '../../../../../lib/http';
+import { triggerSummarize } from '../../../../../lib/services/lectureService';
 
 export async function POST(request: Request, { params }: { params: { lectureId: string } }) {
   return handleRoute(async () => {

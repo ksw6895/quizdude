@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
-import { ApiError, buildErrorPayload, isApiError } from './errors.js';
+import { ApiError, buildErrorPayload, isApiError } from './errors';
 
 export interface RouteResult<T = unknown> {
   status?: number;

@@ -1,5 +1,5 @@
-import { handleRoute } from '../../../../../lib/http.js';
-import { triggerQuiz } from '../../../../../lib/services/lectureService.js';
+import { handleRoute } from '../../../../../lib/http';
+import { triggerQuiz } from '../../../../../lib/services/lectureService';
 
 export async function POST(request: Request, { params }: { params: { lectureId: string } }) {
   return handleRoute(async () => {

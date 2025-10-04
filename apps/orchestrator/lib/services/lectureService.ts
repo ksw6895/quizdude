@@ -2,9 +2,9 @@ import { prisma, UploadStatus, UploadType, JobType, JobStatus } from '@quizdude/
 import type { Prisma } from '@quizdude/db';
 import { z } from 'zod';
 
-import { generateLectureUploadTargets } from '../blobStorage.js';
-import { ApiError } from '../errors.js';
-import { getRuntimeConfig } from '../config/env.js';
+import { generateLectureUploadTargets } from '../blobStorage';
+import { ApiError } from '../errors';
+import { getRuntimeConfig } from '../config/env';
 
 const createLectureSchema = z.object({
   title: z.string().min(3),

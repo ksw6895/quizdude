@@ -1,5 +1,5 @@
-import { handleRoute } from '../../../lib/http.js';
-import { createLecture, listLectures } from '../../../lib/services/lectureService.js';
+import { handleRoute } from '../../../lib/http';
+import { createLecture, listLectures } from '../../../lib/services/lectureService';
 
 export async function GET() {
   return handleRoute(async () => {
