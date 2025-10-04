@@ -34,6 +34,12 @@ import { downloadUpload } from './artifacts.js';
 const POLL_INTERVAL_MS = Number(process.env.JOB_POLL_INTERVAL_MS ?? 5000);
 const MAX_ATTEMPTS = Number(process.env.JOB_MAX_ATTEMPTS ?? 3);
 
+console.log('[worker] boot', {
+  instance: process.env.RENDER_INSTANCE_ID ?? 'local',
+  pollIntervalMs: POLL_INTERVAL_MS,
+  maxAttempts: MAX_ATTEMPTS,
+});
+
 const transcribePayloadSchema = z.object({
   uploadId: z.string(),
   transcriptText: z.string().optional(),

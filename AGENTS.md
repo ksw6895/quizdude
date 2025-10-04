@@ -21,6 +21,10 @@
    - Applied migrations `20251001000000_init` and `20251002000000_phase4_gemini_payloads` on the Render Postgres instance via `pnpm --filter @quizdude/db exec prisma migrate deploy`.
    - Verified schema with `pnpm --filter @quizdude/db exec prisma migrate status`; worker restarted cleanly afterwards.
 
+4. **Worker Observability** (2025-10-04)
+   - Render Shell에서 `pnpm --filter worker run start` 실행 시 프로세스가 종료되지 않고 정상 대기하는 것을 확인함.
+   - `apps/worker/src/index.ts`에 부트 로그(`console.log('[worker] boot', {...})`)를 추가해 인스턴스별 실행 여부를 로그에서 바로 식별 가능하도록 함.
+
 ## Outstanding Concerns & Next Steps
 
 - **Render Cron Job (Not Provisioned Yet)**
