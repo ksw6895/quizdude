@@ -12,11 +12,11 @@
     "typecheck": "tsc -p tsconfig.build.json --noEmit"
   },
   "dependencies": {
-    "@prisma/client": "^5.18.0"
+    "@prisma/client": "^5.18.0",
+    "prisma": "^5.18.0"
   },
   "devDependencies": {
     "@types/node": "^20.16.5",
-    "prisma": "^5.18.0",
     "typescript": "^5.5.4"
   }
 }
