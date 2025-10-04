@@ -1,4 +1,6 @@
 import pRetry, { AbortError } from 'p-retry';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { TextEncoder } from 'node:util';
 import {
   prisma,
   JobStatus,
@@ -79,8 +81,7 @@ function createGeminiClient(): GeminiClient {
   try {
     return new GeminiClient();
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Failed to initialize Gemini client';
+    const message = error instanceof Error ? error.message : 'Failed to initialize Gemini client';
     throw new AbortError(message);
   }
 }
@@ -155,7 +156,8 @@ async function processSummarizeJob(job: JobRun) {
 
   const transcriptUpload = payload.transcriptUploadId
     ? lecture.uploads.find(
-        (upload) => upload.id === payload.transcriptUploadId && upload.type === UploadType.TRANSCRIPT,
+        (upload) =>
+          upload.id === payload.transcriptUploadId && upload.type === UploadType.TRANSCRIPT,
       )
     : lecture.uploads.find(
         (upload) => upload.type === UploadType.TRANSCRIPT && upload.status === UploadStatus.READY,
@@ -170,7 +172,9 @@ async function processSummarizeJob(job: JobRun) {
   );
 
   if (!pdfUpload && !transcriptUpload && !transcriptRecord) {
-    throw new TemporaryError('No lecture artifacts (PDF or transcript) are ready for summarization.');
+    throw new TemporaryError(
+      'No lecture artifacts (PDF or transcript) are ready for summarization.',
+    );
   }
 
   const gemini = createGeminiClient();
@@ -189,8 +193,7 @@ async function processSummarizeJob(job: JobRun) {
     try {
       pdfAsset = await downloadUpload(pdfUpload);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'PDF blob not available yet';
+      const message = error instanceof Error ? error.message : 'PDF blob not available yet';
       throw new TemporaryError(`Unable to download PDF blob: ${message}`);
     }
 
@@ -215,8 +218,7 @@ async function processSummarizeJob(job: JobRun) {
     try {
       transcriptAsset = await downloadUpload(transcriptUpload);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Transcript blob not available yet';
+      const message = error instanceof Error ? error.message : 'Transcript blob not available yet';
       throw new TemporaryError(`Unable to download transcript blob: ${message}`);
     }
 
@@ -261,17 +263,12 @@ async function processSummarizeJob(job: JobRun) {
     `Title: ${lecture.title}`,
     `Language: ${lecture.language}`,
     `Modality: ${lecture.modality}`,
-    'Generate a LectureSummary JSON payload using the attached sources. '
-      + 'Populate meta.source.pdfFileId and transcriptFileId with the Gemini file URIs provided.',
+    'Generate a LectureSummary JSON payload using the attached sources. ' +
+      'Populate meta.source.pdfFileId and transcriptFileId with the Gemini file URIs provided.',
     'If a source is missing, use null for its file ID and [] for any unavailable citations.',
   ];
 
-  const contents = [
-    buildUserContent([
-      buildTextPart(instructionLines.join('\n')),
-      ...sourceParts,
-    ]),
-  ];
+  const contents = [buildUserContent([buildTextPart(instructionLines.join('\n')), ...sourceParts])];
 
   let response;
   try {
@@ -308,10 +305,12 @@ async function processSummarizeJob(job: JobRun) {
   const summary = await prisma.summary.create({
     data: {
       lectureId: lecture.id,
-      payload: summaryPayload,
-      rawResponse: response.rawResponse as Prisma.JsonValue,
+      payload: summaryPayload as Prisma.InputJsonValue,
+      rawResponse: response.rawResponse
+        ? (response.rawResponse as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
       model: response.model,
-      inputFiles,
+      inputFiles: inputFiles as Prisma.InputJsonValue,
     },
   });
 
@@ -405,8 +404,10 @@ async function processQuizJob(job: JobRun) {
   const quiz = await prisma.quiz.create({
     data: {
       lectureId: payload.lectureId,
-      payload: quizPayload,
-      rawResponse: response.rawResponse as Prisma.JsonValue,
+      payload: quizPayload as Prisma.InputJsonValue,
+      rawResponse: response.rawResponse
+        ? (response.rawResponse as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
       model: response.model,
       inputFiles: {
         summaryId: summary.id,
@@ -415,7 +416,7 @@ async function processQuizJob(job: JobRun) {
           mimeType: summaryFile.mimeType,
           name: summaryFile.name,
         },
-      },
+      } as Prisma.InputJsonValue,
       summaryId: summary.id,
     },
   });
@@ -489,7 +490,7 @@ async function processJob(job: JobRun) {
     await completeJob(job.id, {
       status: JobStatus.SUCCEEDED,
       completedAt: new Date(),
-      result,
+      result: result == null ? Prisma.JsonNull : (result as Prisma.InputJsonValue),
       lastError: null,
     });
   } catch (error) {
@@ -506,11 +507,10 @@ async function processJob(job: JobRun) {
 }
 
 async function workerLoop() {
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const job = await claimNextJob();
     if (!job) {
-      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+      await sleep(POLL_INTERVAL_MS);
       continue;
     }
     await processJob(job);
