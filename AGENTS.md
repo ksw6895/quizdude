@@ -10,6 +10,7 @@
 - 신규 문서 `docs/architecture-review-2025-10-04.md`에 모노레포 구조와 리팩터링 타겟 기록.
 - 테스트 로그: `pnpm test` (Vitest) 성공, `pnpm --filter web build` 정상 완료.
 - Vercel 빌드 중 `lib/http.js` 등 확장자 포함 경로를 찾지 못해 실패했으므로 모든 orchestrator 라우터/서비스 import에서 `.js` 확장자를 제거하고 수정 커밋 `d9158d8` 배포함.
+- Vercel `apps/orchestrator`에서 Prisma Query Engine(`rhel-openssl-3.0.x`) 누락으로 500이 발생해 `packages/db/prisma/schema.prisma`의 Prisma Client `binaryTargets`를 `["native", "rhel-openssl-3.0.x"]`로 확대했고, `pnpm --filter @quizdude/db run generate`로 새 엔진을 내려받아 빌드 시 함께 번들되도록 확인함.
 
 ## High-Level State (2025-10-04)
 
