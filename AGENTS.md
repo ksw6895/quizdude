@@ -9,6 +9,7 @@
 - `apps/web`에 Tailwind 관련 의존성(`tailwindcss`, `postcss`, `autoprefixer`, `clsx`, `tailwind-merge`, `@heroicons/react`) 추가. 빌드 시 `pnpm --filter web build` 수행해 정적 페이지 생성 확인함.
 - 신규 문서 `docs/architecture-review-2025-10-04.md`에 모노레포 구조와 리팩터링 타겟 기록.
 - 테스트 로그: `pnpm test` (Vitest) 성공, `pnpm --filter web build` 정상 완료.
+- Vercel 빌드 중 `lib/http.js` 등 확장자 포함 경로를 찾지 못해 실패했으므로 모든 orchestrator 라우터/서비스 import에서 `.js` 확장자를 제거하고 수정 커밋 `d9158d8` 배포함.
 
 ## High-Level State (2025-10-04)
 
