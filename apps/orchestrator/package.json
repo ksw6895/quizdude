@@ -12,6 +12,7 @@
     "test": "vitest run --config ../../vitest.config.ts"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "@quizdude/db": "workspace:*",
     "@quizdude/shared": "workspace:*",
     "next": "^15.0.0",
