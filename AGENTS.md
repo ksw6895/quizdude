@@ -31,6 +31,7 @@
 
 - Render start command (`pnpm run start`) executes inside `apps/worker` where `node dist/apps/worker/src/index.js` runs.
 - At runtime, Node resolves workspace imports relative to `/opt/render/project/src/apps/worker/node_modules`. Because the build step does **not** copy the compiled outputs for `@quizdude/db` and `@quizdude/shared` into that directory, the worker cannot load those packages and exits immediately.
+- Latest Render run boots the worker bundle, but Prisma now stops with `P2021` because table `public.JobRun` is missing in the Render Postgres database (migrations were never applied).
 
 ## Required Follow-Up (Step-by-Step)
 
@@ -80,6 +81,17 @@
 6. **Provide environment variables**
    - Confirm `DATABASE_URL`, `GEMINI_API_KEY`, `BLOB_READ_WRITE_TOKEN`, and related flags are set in Render → Environment tab for both the worker and cron job.
    - For local smoke tests, copy the production values into a `.env.worker.local` file and run `DATABASE_URL="..." pnpm --filter worker start`.
+7. **Render DB에 Prisma 마이그레이션 적용**
+   - Render Background Worker 페이지에서 _Shell_ 또는 SSH를 열고 기본 경로(`/opt/render/project/src`)를 확인합니다(`pwd`).
+   - 아래 명령으로 현재 상태를 확인한 뒤 마이그레이션을 반영하세요.
+     ```bash
+     pnpm --filter @quizdude/db exec prisma migrate status
+     pnpm --filter @quizdude/db exec prisma migrate deploy
+     pnpm --filter @quizdude/db exec prisma migrate status
+     ```
+   - 기대 결과: `Database schema is up to date!` 메시지와 함께 `20251001000000_init` 등 마이그레이션이 적용되었다고 표시됩니다.
+   - Shell이 `DATABASE_URL`을 읽지 못하면, Render 상단의 _Environment_ 버튼에서 동일한 값을 주입한 뒤 다시 실행하세요.
+   - 성공 후 Worker 로그에 더 이상 `public.JobRun` 관련 오류가 나타나지 않는지 확인합니다.
 
 ## Additional Guidance for Beginners
 
@@ -104,10 +116,15 @@
   DATABASE_URL="postgres://user:pass@host:5432/db" pnpm run start
   ```
 - If you see `MODULE_NOT_FOUND`, inspect the `dist` folders inside `node_modules/@quizdude/*`. Missing files mean the package’s `build` script did not run in that environment.
+- Prisma `P2021` 혹은 테이블 누락 에러가 보이면, 먼저 `pnpm --filter @quizdude/db exec prisma migrate status`로 Render DB 적용 여부를 확인하세요.
 - Keep commits small and descriptive; current recent commits are:
   - `d0bfd9c` – update worker scripts to use emitted bundle paths.
   - `25c6b16` – add Prisma CLI to production dependencies.
   - `2e77590` – adjust worker build for Render (tsconfig, Prisma JSON handling, Blob download fix).
+- Render Shell에서 테이블을 직접 보고 싶다면 아래처럼 Prisma Studio를 CLI 모드로 띄워 URL만 확인할 수 있습니다.
+  ```bash
+  pnpm --filter @quizdude/db exec prisma studio --browser none
+  ```
 
 ## Open Questions
 
@@ -119,3 +136,4 @@
 - [ ] Confirm new build command resolves the runtime import error.
 - [ ] Document any additional Render configuration changes once verified.
 - [ ] If cron job or additional services are added later, repeat the same build process.
+- [ ] Render Postgres에 `pnpm --filter @quizdude/db exec prisma migrate deploy`가 적용되었고 `prisma migrate status`가 up-to-date라고 보고하는지 확인.
