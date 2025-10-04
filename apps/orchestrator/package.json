@@ -8,7 +8,8 @@
     "dev": "next dev",
     "build": "pnpm run build:packages && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run --config ../../vitest.config.ts"
   },
   "dependencies": {
     "@quizdude/db": "workspace:*",
@@ -22,6 +23,7 @@
     "@types/node": "^20.16.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.0"
   }
 }

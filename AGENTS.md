@@ -1,5 +1,15 @@
 # Deployment Troubleshooting Log (2025-10-04)
 
+## Session Notes (2025-10-05)
+
+- Orchestrator API 로직을 `lib/services/lectureService.ts`로 통합하고 `lib/http.ts`, `lib/errors.ts`, `lib/config/env.ts`를 추가해 공통 에러 응답·환경 변수 검증을 일괄 처리하도록 변경함. 모든 API 라우터는 `handleRoute` 유틸을 통해 일관된 에러 포맷을 반환함.
+- Worker가 `config/env.ts`, `logger.ts`, `jobs/*` 구조로 모듈화되었고 `WORKER_CONCURRENCY`, `JOB_MAX_ATTEMPTS` 등을 환경 변수로 제어 가능해짐. 로그는 인스턴스 ID 기반 prefix를 사용하고 동시 실행(기본 1, 구성 가능)을 지원함.
+- Vitest 기반 테스트 환경을 도입(`vitest.config.ts`). 공유 패키지(`featureFlags`, `geminiConfig`)와 orchestrator 서비스 로직에 단위 테스트 추가. `pnpm test`로 검증 가능.
+- 웹 프론트엔드가 Tailwind UI로 전면 리디자인됨. `components/ui/*` 제공, `AppShell` 레이아웃 도입, `/dashboard`, `/lectures/[id]`, `/admin/jobs` 페이지를 카드 기반 UI와 상태 배지·재실행 버튼으로 재구성함.
+- `apps/web`에 Tailwind 관련 의존성(`tailwindcss`, `postcss`, `autoprefixer`, `clsx`, `tailwind-merge`, `@heroicons/react`) 추가. 빌드 시 `pnpm --filter web build` 수행해 정적 페이지 생성 확인함.
+- 신규 문서 `docs/architecture-review-2025-10-04.md`에 모노레포 구조와 리팩터링 타겟 기록.
+- 테스트 로그: `pnpm test` (Vitest) 성공, `pnpm --filter web build` 정상 완료.
+
 ## High-Level State (2025-10-04)
 
 - Render Background Worker (`apps/worker`) now builds and boots with `pnpm@9.15.5`; latest deploy logs show the process reaching `node dist/apps/worker/src/index.js` without module resolution errors.
@@ -24,6 +34,7 @@
 4. **Worker Observability** (2025-10-04)
    - Render Shell에서 `pnpm --filter worker run start` 실행 시 프로세스가 종료되지 않고 정상 대기하는 것을 확인함.
    - `apps/worker/src/index.ts`에 부트 로그(`console.log('[worker] boot', {...})`)를 추가해 인스턴스별 실행 여부를 로그에서 바로 식별 가능하도록 함.
+   - 최신 배포 로그에서 `[worker] boot { instance: 'srv-d3gasevfte5s73bvfqf0-5747d5cf86-zkmlk', pollIntervalMs: 5000, maxAttempts: 3 }` 출력 확인함.
 
 ## Outstanding Concerns & Next Steps
 

@@ -1,9 +1,15 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import type { DragEvent, FormEvent } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import type { ComponentProps, DragEvent, ElementRef, FormEvent } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
+import {
+  ArrowPathIcon,
+  CloudArrowUpIcon,
+  DocumentMagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
+import clsx from 'clsx';
 import { put } from '@vercel/blob/client';
 
 import {
@@ -16,6 +22,13 @@ import {
   type CreateLecturePayload,
 } from '../../lib/api';
 import type { LectureListItem } from '../../lib/types';
+import { Card, CardHeader, CardFooter } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import { Badge } from '../../components/ui/badge';
+import { Switch } from '../../components/ui/switch';
+import { StatusIndicator } from '../../components/ui/status-indicator';
 
 interface SelectedFile {
   id: string;
@@ -48,12 +61,8 @@ function detectKind(file: File): SelectedFile['kind'] {
 function determineModality(files: SelectedFile[]): CreateLecturePayload['modality'] {
   const hasPdf = files.some((item) => item.kind === 'pdf');
   const hasMedia = files.some((item) => item.kind === 'audio' || item.kind === 'video');
-  if (hasPdf && hasMedia) {
-    return 'pdf_plus_media';
-  }
-  if (hasPdf) {
-    return 'pdf_only';
-  }
+  if (hasPdf && hasMedia) return 'pdf_plus_media';
+  if (hasPdf) return 'pdf_only';
   return 'media_only';
 }
 
@@ -66,22 +75,25 @@ function formatDate(value: string | null | undefined) {
   return date.toLocaleString();
 }
 
-function statusColor(status?: string | null) {
-  switch (status) {
-    case 'SUCCEEDED':
-    case 'READY':
-      return '#16a34a';
-    case 'PROCESSING':
-    case 'PENDING':
-    case 'UPLOADING':
-      return '#2563eb';
-    case 'NEEDS_ATTENTION':
-    case 'FAILED':
-      return '#dc2626';
-    default:
-      return '#6b7280';
-  }
-}
+const statusBadges: Record<
+  string,
+  { label: string; tone: ComponentProps<typeof Badge>['variant'] }
+> = {
+  READY: { label: '레디', tone: 'success' },
+  SUCCEEDED: { label: '성공', tone: 'success' },
+  PROCESSING: { label: '처리 중', tone: 'default' },
+  PENDING: { label: '대기', tone: 'default' },
+  UPLOADING: { label: '업로드 중', tone: 'default' },
+  FAILED: { label: '실패', tone: 'danger' },
+  NEEDS_ATTENTION: { label: '확인 필요', tone: 'danger' },
+};
+
+const KIND_LABELS: Record<SelectedFile['kind'], string> = {
+  pdf: 'PDF',
+  audio: '오디오',
+  video: '비디오',
+  transcript: '전사 텍스트',
+};
 
 export default function DashboardPage() {
   const {
@@ -102,6 +114,7 @@ export default function DashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<ElementRef<'input'>>(null);
 
   const hasMedia = useMemo(
     () => selectedFiles.some((file) => file.kind === 'audio' || file.kind === 'video'),
@@ -114,12 +127,7 @@ export default function DashboardPage() {
       let next = [...prev];
       Array.from(files).forEach((file) => {
         const kind = detectKind(file);
-        const hasCrypto =
-          typeof globalThis.crypto !== 'undefined' && 'randomUUID' in globalThis.crypto;
-        const id = hasCrypto
-          ? globalThis.crypto.randomUUID()
-          : `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
-
+        const id = crypto.randomUUID();
         if (kind === 'pdf') {
           next = next.filter((item) => item.kind !== 'pdf');
           next.push({ id, file, kind, status: 'pending' });
@@ -343,406 +351,305 @@ export default function DashboardPage() {
   );
 
   return (
-    <main
-      style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '2rem 1.5rem 4rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2rem',
-      }}
-    >
-      <header style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>업로드 대시보드</h1>
-        <p style={{ color: '#4b5563' }}>
-          PDF와 미디어 파일을 업로드하고 Gemini 기반 요약 및 퀴즈 생성을 실행하세요.
+    <div className="flex flex-col gap-8">
+      <header className="flex flex-col gap-4">
+        <h1 className="text-3xl font-semibold text-white">업로드 대시보드</h1>
+        <p className="max-w-2xl text-slate-300">
+          PDF와 미디어 파일을 업로드하고 Gemini 기반 요약 및 퀴즈 생성을 실행합니다. Blob 업로드
+          진행 상황은 실시간으로 추적되며, 잡 재실행 버튼으로 언제든지 결과를 갱신할 수 있습니다.
         </p>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
+          <span className="inline-flex items-center gap-1">
+            <ArrowPathIcon className="h-4 w-4" /> {POLL_INTERVAL_MS / 1000}s 마다 목록 자동 새로고침
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <DocumentMagnifyingGlassIcon className="h-4 w-4" /> 요약/퀴즈는 Gemini json schema
+            validation을 통과해야 저장됩니다
+          </span>
+        </div>
       </header>
 
-      <section
-        style={{
-          border: '1px solid #e5e7eb',
-          borderRadius: '0.75rem',
-          padding: '1.5rem',
-          background: '#f9fafb',
-        }}
-      >
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>
-          새 강의 업로드
-        </h2>
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <label
-              style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-            >
-              <span style={{ fontWeight: 600 }}>제목 *</span>
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                required
-                style={{
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #d1d5db',
-                }}
-                placeholder="예: 2025년 1학기 AI 개론 3주차"
-              />
-            </label>
-            <label
-              style={{ width: '160px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-            >
-              <span style={{ fontWeight: 600 }}>언어</span>
-              <input
-                value={language}
-                onChange={(event) => setLanguage(event.target.value)}
-                style={{
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #d1d5db',
-                }}
-                placeholder="ko"
-              />
-            </label>
-          </div>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <span style={{ fontWeight: 600 }}>설명</span>
-            <textarea
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={3}
-              style={{
-                padding: '0.75rem',
-                borderRadius: '0.75rem',
-                border: '1px solid #d1d5db',
-                resize: 'vertical',
-              }}
-              placeholder="강의 요약, 챕터, 강사 정보를 남기면 요약 품질에 도움이 됩니다."
-            />
-          </label>
-
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            style={{
-              border: '2px dashed #d1d5db',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              textAlign: 'center',
-              background: isDragging ? '#eef2ff' : '#fff',
-              transition: 'background 0.2s ease',
-            }}
-          >
-            <p style={{ fontWeight: 600 }}>파일을 이 영역에 드래그하세요</p>
-            <p style={{ color: '#6b7280', marginTop: '0.25rem' }}>
-              PDF 1개와 영상/오디오/전사 파일을 최대 1개씩 업로드할 수 있습니다.
-            </p>
-            <div style={{ marginTop: '1rem' }}>
-              <label
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '0.5rem',
-                  background: '#1d4ed8',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                }}
-              >
-                파일 선택
-                <input
-                  type="file"
-                  multiple
-                  onChange={(event) => addFiles(event.target.files)}
-                  style={{ display: 'none' }}
-                  accept=".pdf,audio/*,video/*,.txt,.json"
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <Card className="border-slate-800/80 bg-slate-900/70">
+          <CardHeader
+            title="새 강의 업로드"
+            description="필수 PDF와 선택적인 오디오/비디오/전사 텍스트를 등록하세요. 업로드 완료 시 요약이 자동으로 실행됩니다."
+          />
+          <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="col-span-full">
+                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                  <span>강의 제목 *</span>
+                  <Input
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    placeholder="예: 2025년 1학기 AI 개론 3주차"
+                    required
+                  />
+                </label>
+              </div>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <span>강의 설명</span>
+                <Textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  className="min-h-[120px]"
+                  placeholder="강의 개요, 핵심 학습 목표 등을 입력하면 후기 확인 시 도움이 됩니다."
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <span>강의 언어</span>
+                <Input
+                  value={language}
+                  onChange={(event) => setLanguage(event.target.value)}
+                  placeholder="ko"
                 />
               </label>
             </div>
-          </div>
 
-          {selectedFiles.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>선택된 파일</h3>
-              <ul
-                style={{
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}
+            <div>
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={clsx(
+                  'group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900/60 p-10 text-center transition hover:border-brand-400 hover:bg-slate-900',
+                  isDragging ? 'border-brand-400 bg-slate-900/40' : '',
+                )}
+                onClick={() => fileInputRef.current?.click()}
               >
-                {selectedFiles.map((item) => (
-                  <li
-                    key={item.id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '0.75rem',
-                      border: '1px solid #e5e7eb',
-                      background: '#fff',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{item.file.name}</div>
-                      <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                        {item.kind.toUpperCase()} · {(item.file.size / (1024 * 1024)).toFixed(2)} MB
-                        · {item.file.type || 'unknown'}
-                      </div>
-                      <div
-                        style={{
-                          color: statusColor(item.status),
-                          fontSize: '0.85rem',
-                          marginTop: '0.25rem',
-                        }}
-                      >
-                        {item.status === 'pending' && '대기 중'}
-                        {item.status === 'uploading' && '업로드 중...'}
-                        {item.status === 'uploaded' && '업로드 완료'}
-                        {item.status === 'failed' && `실패: ${item.message}`}
-                      </div>
+                <CloudArrowUpIcon className="h-12 w-12 text-brand-300" />
+                <p className="mt-4 text-base font-medium text-slate-200">
+                  파일을 끌어다 놓거나 클릭해서 선택하세요
+                </p>
+                <p className="mt-2 max-w-md text-sm text-slate-400">
+                  PDF 1개와 오디오·비디오·전사 텍스트를 각각 1개씩 업로드할 수 있습니다. 동일 종류
+                  파일을 다시 선택하면 최신 파일로 교체됩니다.
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  multiple
+                  onChange={(event) => addFiles(event.target.files)}
+                  accept=".pdf,.mp3,.wav,.m4a,.flac,.mp4,.mov,.avi,.mkv,.txt,.json"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-2xl border border-slate-800/80 bg-slate-900/50 px-5 py-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-200">오디오 파이프라인 실행</p>
+                <p className="text-xs text-slate-400">
+                  오디오/비디오 파일이 있을 때만 활성화됩니다. 전사 완료 후 Gemini 요약이 해당
+                  텍스트를 활용합니다.
+                </p>
+              </div>
+              <Switch
+                checked={audioPipeline && hasMedia}
+                onCheckedChange={(value) => setAudioPipeline(value)}
+                disabled={!hasMedia}
+                className={!hasMedia ? 'cursor-not-allowed opacity-50' : undefined}
+              />
+            </div>
+
+            {errorMessage && (
+              <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+                {errorMessage}
+              </div>
+            )}
+            {feedback && (
+              <div className="rounded-xl border border-brand-400/40 bg-brand-500/10 px-4 py-3 text-sm text-brand-100">
+                {feedback}
+              </div>
+            )}
+
+            <CardFooter>
+              <Button type="submit" loading={submitting} className="min-w-[160px]">
+                강의 업로드 실행
+              </Button>
+              <Button type="button" variant="ghost" onClick={resetForm} disabled={submitting}>
+                입력 초기화
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+
+        <div className="flex flex-col gap-6">
+          <Card className="border-slate-800/80 bg-slate-900/70">
+            <CardHeader title="선택한 파일" description="업로드 순서 및 상태를 확인하세요." />
+            <ul className="space-y-4 text-sm text-slate-200">
+              {selectedFiles.length === 0 && (
+                <li className="text-slate-400">등록된 파일이 없습니다.</li>
+              )}
+              {selectedFiles.map((file) => (
+                <li
+                  key={file.id}
+                  className="flex items-start justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-3"
+                >
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="muted">{KIND_LABELS[file.kind]}</Badge>
+                      <span className="font-medium text-slate-100">{file.file.name}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(item.id)}
-                      disabled={submitting}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.5rem',
-                        padding: '0.35rem 0.75rem',
-                        cursor: submitting ? 'not-allowed' : 'pointer',
-                      }}
+                    <span className="text-xs text-slate-400">
+                      {(file.file.size / 1024 / 1024).toFixed(2)} MB
+                    </span>
+                    {file.message && <span className="text-xs text-slate-400">{file.message}</span>}
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge variant={statusBadges[file.status.toUpperCase()]?.tone ?? 'muted'}>
+                      {statusBadges[file.status.toUpperCase()]?.label ?? file.status}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(file.id)}
+                      className="text-xs text-slate-400 hover:text-slate-100"
                     >
                       제거
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
 
-          {hasMedia && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <input
-                type="checkbox"
-                checked={audioPipeline}
-                onChange={(event) => setAudioPipeline(event.target.checked)}
-              />
-              <span style={{ fontSize: '0.95rem' }}>
-                오디오/비디오 전사 파이프라인 실행 (ElevenLabs)
-              </span>
-            </label>
-          )}
-
-          {errorMessage && <div style={{ color: '#dc2626', fontWeight: 600 }}>{errorMessage}</div>}
-          {feedback && <div style={{ color: '#15803d', fontWeight: 600 }}>{feedback}</div>}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              alignSelf: 'flex-start',
-              background: submitting ? '#94a3b8' : '#1d4ed8',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.75rem',
-              padding: '0.6rem 1.4rem',
-              fontWeight: 600,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {submitting ? '업로드 중...' : '강의 생성'}
-          </button>
-        </form>
-      </section>
-
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>강의 현황</h2>
-          <button
-            type="button"
-            onClick={() => mutate()}
-            style={{
-              background: '#111827',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              padding: '0.35rem 0.9rem',
-              cursor: 'pointer',
-            }}
-          >
-            새로고침
-          </button>
+          <Card className="border-slate-800/80 bg-slate-900/70">
+            <CardHeader
+              title="업로드 팁"
+              description="대용량 파일 업로드 안정성을 높이기 위한 가이드입니다."
+            />
+            <ul className="space-y-3 text-xs text-slate-300">
+              <li>
+                • 브라우저 창을 새로고침하지 않은 상태에서 PDF → 미디어 → 전사 순으로 업로드하면
+                안정적입니다.
+              </li>
+              <li>• 업로드 실패 시 파일을 다시 선택하면 같은 Blob 키로 재시도합니다.</li>
+              <li>
+                • Render 워커가 요약/퀴즈를 처리하는 동안 잡 상태가 PENDING → PROCESSING → SUCCEEDED
+                로 변합니다.
+              </li>
+            </ul>
+          </Card>
         </div>
-        {isLoading && <p>데이터를 불러오는 중...</p>}
-        {error && <p style={{ color: '#dc2626' }}>강의 목록을 불러올 수 없습니다.</p>}
-        {lectures && lectures.length === 0 && (
-          <p style={{ color: '#6b7280' }}>등록된 강의가 없습니다.</p>
-        )}
-        {lectures && lectures.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {lectures.map((lecture) => (
-              <article
-                key={lecture.id}
-                style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.75rem',
-                  padding: '1.25rem',
-                  background: '#fff',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem',
-                }}
-              >
-                <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>{lecture.title}</h3>
-                  <p style={{ color: '#6b7280', margin: '0.25rem 0' }}>
-                    {lecture.description ?? '설명 없음'}
-                  </p>
-                  <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                    {lecture.language.toUpperCase()} · {lecture.modality} · 생성일{' '}
-                    {formatDate(lecture.createdAt)}
-                  </div>
-                </div>
+      </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ flex: '1 1 220px' }}>
-                    <strong>업로드</strong>
-                    <ul
-                      style={{
-                        listStyle: 'none',
-                        margin: '0.35rem 0 0',
-                        padding: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.25rem',
-                      }}
-                    >
-                      {lecture.uploads.map((upload) => (
-                        <li
-                          key={upload.id}
-                          style={{ color: statusColor(upload.status), fontSize: '0.9rem' }}
-                        >
-                          {upload.type}: {upload.status}{' '}
-                          {upload.sizeBytes
-                            ? `(${(upload.sizeBytes / (1024 * 1024)).toFixed(1)} MB)`
-                            : ''}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div style={{ flex: '1 1 220px' }}>
-                    <strong>요약</strong>
+      <Card className="border-slate-800/80 bg-slate-900/70">
+        <CardHeader
+          title="강의 목록"
+          description="최근 업로드된 강의와 잡 상태를 확인하고 재실행할 수 있습니다."
+        />
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-800 text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                <th className="px-4 py-3">강의</th>
+                <th className="px-4 py-3">모달리티</th>
+                <th className="px-4 py-3">요약</th>
+                <th className="px-4 py-3">퀴즈</th>
+                <th className="px-4 py-3">잡 상태</th>
+                <th className="px-4 py-3">액션</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/80">
+              {isLoading && (
+                <tr>
+                  <td className="px-4 py-6 text-center text-slate-400" colSpan={6}>
+                    데이터를 불러오는 중입니다...
+                  </td>
+                </tr>
+              )}
+              {error && (
+                <tr>
+                  <td className="px-4 py-6 text-center text-danger" colSpan={6}>
+                    강의 목록을 불러오지 못했습니다.
+                  </td>
+                </tr>
+              )}
+              {lectures && lectures.length === 0 && (
+                <tr>
+                  <td className="px-4 py-6 text-center text-slate-400" colSpan={6}>
+                    아직 업로드된 강의가 없습니다. 상단 폼에서 처음 강의를 등록해보세요.
+                  </td>
+                </tr>
+              )}
+              {lectures?.map((lecture) => (
+                <tr key={lecture.id} className="hover:bg-slate-900/40">
+                  <td className="px-4 py-4">
+                    <div className="flex flex-col gap-1">
+                      <Link
+                        href={`/lectures/${lecture.id}`}
+                        className="text-sm font-semibold text-slate-100 hover:text-brand-200"
+                      >
+                        {lecture.title}
+                      </Link>
+                      <span className="text-xs text-slate-400">
+                        생성일 {formatDate(lecture.createdAt)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <Badge variant="muted">{lecture.modality}</Badge>
+                  </td>
+                  <td className="px-4 py-4">
                     {lecture.latestSummary ? (
-                      <div style={{ color: '#1f2937', fontSize: '0.95rem' }}>
-                        {lecture.latestSummary.meta ? '생성됨' : '대기 중'} · 모델{' '}
-                        {lecture.latestSummary.model}
-                        <br />
-                        {formatDate(lecture.latestSummary.createdAt)}
+                      <div className="flex flex-col">
+                        <StatusIndicator status="SUCCEEDED" label="생성됨" />
+                        <span className="text-xs text-slate-400">
+                          {formatDate(lecture.latestSummary.createdAt)}
+                        </span>
                       </div>
                     ) : (
-                      <div style={{ color: '#6b7280' }}>—</div>
+                      <StatusIndicator status="PENDING" label="미생성" />
                     )}
-                  </div>
-                  <div style={{ flex: '1 1 220px' }}>
-                    <strong>퀴즈</strong>
+                  </td>
+                  <td className="px-4 py-4">
                     {lecture.latestQuiz ? (
-                      <div style={{ color: '#1f2937', fontSize: '0.95rem' }}>
-                        {lecture.latestQuiz.itemCount ?? 0}문항 · 모델 {lecture.latestQuiz.model}
-                        <br />
-                        {formatDate(lecture.latestQuiz.createdAt)}
+                      <div className="flex flex-col">
+                        <StatusIndicator
+                          status="SUCCEEDED"
+                          label={`${lecture.latestQuiz.itemCount ?? 0}문항`}
+                        />
+                        <span className="text-xs text-slate-400">
+                          {formatDate(lecture.latestQuiz.createdAt)}
+                        </span>
                       </div>
                     ) : (
-                      <div style={{ color: '#6b7280' }}>—</div>
+                      <StatusIndicator status="PENDING" label="미생성" />
                     )}
-                  </div>
-                  <div style={{ flex: '1 1 220px' }}>
-                    <strong>잡 상태</strong>
-                    <ul
-                      style={{
-                        listStyle: 'none',
-                        margin: '0.35rem 0 0',
-                        padding: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.25rem',
-                      }}
-                    >
-                      {['summarize', 'quiz', 'transcribe'].map((key) => {
-                        const job = lecture.jobs[key];
-                        return (
-                          <li
-                            key={key}
-                            style={{ color: statusColor(job?.status), fontSize: '0.9rem' }}
-                          >
-                            {key}: {job ? job.status : '—'}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => rerunSummary(lecture.id)}
-                    style={{
-                      background: '#1d4ed8',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      padding: '0.45rem 0.85rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    요약 재실행
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => rerunQuiz(lecture.id)}
-                    style={{
-                      background: '#9333ea',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '0.5rem',
-                      padding: '0.45rem 0.85rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    퀴즈 재실행
-                  </button>
-                  <Link
-                    href={`/lectures/${lecture.id}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      padding: '0.45rem 0.85rem',
-                      borderRadius: '0.5rem',
-                      border: '1px solid #d1d5db',
-                      color: '#1f2937',
-                    }}
-                  >
-                    상세 보기
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-    </main>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex flex-col gap-1 text-xs text-slate-300">
+                      {Object.entries(lecture.jobs).map(([key, job]) =>
+                        job ? (
+                          <div key={key} className="flex items-center justify-between gap-2">
+                            <span className="uppercase text-slate-400">{key}</span>
+                            <StatusIndicator status={job.status} />
+                          </div>
+                        ) : null,
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="secondary" size="sm" asChild>
+                        <Link href={`/lectures/${lecture.id}`}>상세 보기</Link>
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => rerunSummary(lecture.id)}>
+                        요약 재실행
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => rerunQuiz(lecture.id)}>
+                        퀴즈 재실행
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
   );
 }

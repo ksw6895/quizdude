@@ -4,10 +4,17 @@ import { Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
 
 import { getLectureDetail, listLectures, triggerQuiz, triggerSummarize } from '../../../lib/api';
 import type { LectureDetail, LectureListItem } from '../../../lib/types';
 import type { LectureSummary, QuizSet } from '@quizdude/shared';
+
+import { Card, CardHeader } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
+import { StatusIndicator } from '../../../components/ui/status-indicator';
 
 const REFRESH_INTERVAL_MS = 15000;
 
@@ -23,26 +30,17 @@ function formatDate(value?: string | null) {
 function RawJson({ label, value }: { label: string; value: unknown }) {
   if (!value) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-        <strong>{label}</strong>
-        <span style={{ color: '#6b7280' }}>자료 없음</span>
+      <div className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <strong className="text-sm text-slate-200">{label}</strong>
+        <span className="text-xs text-slate-500">자료 없음</span>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-      <strong>{label}</strong>
-      <pre
-        style={{
-          background: '#0f172a',
-          color: '#e2e8f0',
-          borderRadius: '0.75rem',
-          padding: '0.9rem',
-          overflowX: 'auto',
-          fontSize: '0.85rem',
-        }}
-      >
+    <div className="flex flex-col gap-2">
+      <strong className="text-sm text-slate-200">{label}</strong>
+      <pre className="max-h-80 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-200 shadow-inner shadow-slate-900/80">
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>
@@ -100,321 +98,220 @@ function AdminJobsPageContent() {
   };
 
   return (
-    <main
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '320px 1fr',
-        gap: '1.5rem',
-        padding: '2rem 1.5rem 4rem',
-      }}
-    >
-      <aside
-        style={{
-          border: '1px solid #e5e7eb',
-          borderRadius: '0.75rem',
-          padding: '1rem',
-          background: '#fff',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-          maxHeight: 'calc(100vh - 4rem)',
-          overflowY: 'auto',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>강의 목록</h2>
-          <Link href="/dashboard" style={{ color: '#2563eb', fontSize: '0.9rem' }}>
-            대시보드
-          </Link>
+    <section className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+      <Card className="h-fit border-slate-800/80 bg-slate-900/70">
+        <CardHeader title="강의 목록" description="진단할 강의를 선택하세요." />
+        <div className="flex flex-col gap-3">
+          <Button asChild variant="ghost" size="sm" className="justify-start text-slate-300">
+            <Link href="/dashboard">← 대시보드</Link>
+          </Button>
+          <div className="max-h-[70vh] overflow-y-auto rounded-2xl border border-slate-800/60 bg-slate-950/50 p-3">
+            {lectures && lectures.length > 0 ? (
+              <ul className="flex flex-col gap-2">
+                {lectures.map((lecture) => {
+                  const isActive = lecture.id === selectedLectureId;
+                  return (
+                    <li key={lecture.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectLecture(lecture.id)}
+                        className={clsx(
+                          'w-full rounded-2xl border px-4 py-3 text-left transition',
+                          isActive
+                            ? 'border-brand-400/40 bg-brand-500/20 text-brand-100'
+                            : 'border-slate-800 bg-slate-900/80 text-slate-200 hover:border-brand-400/30 hover:bg-slate-900',
+                        )}
+                      >
+                        <div className="text-sm font-semibold">{lecture.title}</div>
+                        <div className="text-xs text-slate-400">
+                          생성일 {formatDate(lecture.createdAt)}
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-400">강의가 없습니다.</p>
+            )}
+          </div>
         </div>
-        {lectures && lectures.length > 0 ? (
-          <ul
-            style={{
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-            }}
-          >
-            {lectures.map((lecture) => {
-              const isActive = lecture.id === selectedLectureId;
-              return (
-                <li key={lecture.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectLecture(lecture.id)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '0.75rem 0.9rem',
-                      borderRadius: '0.65rem',
-                      border: '1px solid',
-                      borderColor: isActive ? '#1d4ed8' : '#e5e7eb',
-                      background: isActive ? '#dbeafe' : '#fff',
-                      color: '#1f2937',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.25rem',
-                    }}
-                  >
-                    <span style={{ fontWeight: 600 }}>{lecture.title}</span>
-                    <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-                      생성일 {formatDate(lecture.createdAt)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p style={{ color: '#6b7280' }}>강의가 없습니다.</p>
-        )}
-      </aside>
+      </Card>
 
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {!selectedLectureId && <p style={{ color: '#6b7280' }}>좌측에서 강의를 선택하세요.</p>}
-        {selectedLectureId && isLoading && <p>강의 데이터를 불러오는 중...</p>}
-        {detailError && <p style={{ color: '#dc2626' }}>강의 상세 정보를 불러올 수 없습니다.</p>}
+      <div className="flex flex-col gap-6">
+        {!selectedLectureId && (
+          <Card className="border-slate-800/80 bg-slate-900/70">
+            <CardHeader
+              title="강의를 선택하세요"
+              description="좌측 목록에서 진단할 강의를 선택하면 상세 정보가 표시됩니다."
+            />
+          </Card>
+        )}
+        {selectedLectureId && isLoading && (
+          <Card className="border-slate-800/80 bg-slate-900/70">
+            <CardHeader title="강의 데이터를 불러오는 중..." />
+          </Card>
+        )}
+        {detailError && (
+          <Card className="border-slate-800/80 bg-slate-900/70">
+            <CardHeader title="강의 상세 정보를 불러올 수 없습니다." />
+          </Card>
+        )}
 
         {lectureDetail && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <header style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>{lectureDetail.title}</h1>
-              <p style={{ color: '#4b5563' }}>{lectureDetail.description ?? '설명 없음'}</p>
-              <div style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-                {lectureDetail.language.toUpperCase()} · {lectureDetail.modality} · 생성일{' '}
-                {formatDate(lectureDetail.createdAt)}
+          <>
+            <Card className="border-slate-800/80 bg-slate-900/70">
+              <CardHeader
+                title={lectureDetail.title}
+                description={lectureDetail.description ?? '설명이 없습니다.'}
+              />
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                <Badge variant="muted">{lectureDetail.language.toUpperCase()}</Badge>
+                <Badge variant="muted">{lectureDetail.modality}</Badge>
+                {lectureDetail.audioPipelineEnabled && (
+                  <Badge variant="default">Audio Pipeline</Badge>
+                )}
+                <span>생성일 {formatDate(lectureDetail.createdAt)}</span>
               </div>
-              <div
-                style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}
-              >
-                <button
-                  type="button"
-                  onClick={rerunSummary}
-                  style={{
-                    background: '#1d4ed8',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    padding: '0.45rem 0.85rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  요약 재실행
-                </button>
-                <button
-                  type="button"
-                  onClick={rerunQuiz}
-                  style={{
-                    background: '#9333ea',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    padding: '0.45rem 0.85rem',
-                    cursor: 'pointer',
-                  }}
-                >
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Button variant="primary" size="sm" onClick={rerunSummary}>
+                  <ArrowPathIcon className="mr-2 h-4 w-4" /> 요약 재실행
+                </Button>
+                <Button variant="secondary" size="sm" onClick={rerunQuiz}>
                   퀴즈 재실행
-                </button>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/lectures/${lectureDetail.id}`}>강의 상세 페이지</Link>
+                </Button>
               </div>
-            </header>
+            </Card>
 
-            <section
-              style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                padding: '1.25rem',
-                background: '#fff',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>최근 요약</h2>
-              {latestSummary ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                    모델 {latestSummary.model} · 생성일 {formatDate(latestSummary.createdAt)} · 요약
-                    ID {latestSummary.id}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="border-slate-800/80 bg-slate-900/70">
+                <CardHeader title="최근 요약" />
+                {latestSummary ? (
+                  <div className="space-y-3 text-sm text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="success">생성됨</Badge>
+                      <span className="text-xs text-slate-400">
+                        {formatDate(latestSummary.createdAt)}
+                      </span>
+                    </div>
+                    <RawJson
+                      label="요약 페이로드"
+                      value={latestSummary.payload as LectureSummary}
+                    />
                   </div>
-                  <RawJson label="요약 JSON" value={latestSummary.payload as LectureSummary} />
-                  <RawJson label="원본 응답" value={latestSummary.rawResponse} />
-                  <RawJson label="입력 소스" value={latestSummary.inputFiles} />
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280' }}>요약 데이터가 없습니다.</p>
-              )}
-            </section>
-
-            <section
-              style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                padding: '1.25rem',
-                background: '#fff',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>최근 퀴즈</h2>
-              {latestQuiz ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                    모델 {latestQuiz.model} · 생성일 {formatDate(latestQuiz.createdAt)} · 퀴즈 ID{' '}
-                    {latestQuiz.id}
+                ) : (
+                  <p className="text-sm text-slate-400">요약 데이터가 없습니다.</p>
+                )}
+              </Card>
+              <Card className="border-slate-800/80 bg-slate-900/70">
+                <CardHeader title="최근 퀴즈" />
+                {latestQuiz ? (
+                  <div className="space-y-3 text-sm text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="success">생성됨</Badge>
+                      <span className="text-xs text-slate-400">
+                        {formatDate(latestQuiz.createdAt)}
+                      </span>
+                    </div>
+                    <RawJson label="퀴즈 페이로드" value={latestQuiz.payload as QuizSet} />
                   </div>
-                  <RawJson label="퀴즈 JSON" value={latestQuiz.payload as QuizSet} />
-                  <RawJson label="원본 응답" value={latestQuiz.rawResponse} />
-                  <RawJson label="입력 소스" value={latestQuiz.inputFiles} />
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280' }}>퀴즈 데이터가 없습니다.</p>
-              )}
-            </section>
+                ) : (
+                  <p className="text-sm text-slate-400">퀴즈 데이터가 없습니다.</p>
+                )}
+              </Card>
+            </div>
 
-            <section
-              style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                padding: '1.25rem',
-                background: '#fff',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-              }}
-            >
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>잡 이력</h2>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '760px' }}>
+            <Card className="border-slate-800/80 bg-slate-900/70">
+              <CardHeader title="업로드 현황" />
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-800 text-sm">
                   <thead>
-                    <tr style={{ background: '#f8fafc' }}>
-                      <th
-                        style={{
-                          padding: '0.5rem',
-                          textAlign: 'left',
-                          borderBottom: '1px solid #e5e7eb',
-                        }}
-                      >
-                        ID
-                      </th>
-                      <th
-                        style={{
-                          padding: '0.5rem',
-                          textAlign: 'left',
-                          borderBottom: '1px solid #e5e7eb',
-                        }}
-                      >
-                        타입
-                      </th>
-                      <th
-                        style={{
-                          padding: '0.5rem',
-                          textAlign: 'left',
-                          borderBottom: '1px solid #e5e7eb',
-                        }}
-                      >
-                        상태
-                      </th>
-                      <th
-                        style={{
-                          padding: '0.5rem',
-                          textAlign: 'left',
-                          borderBottom: '1px solid #e5e7eb',
-                        }}
-                      >
-                        시작
-                      </th>
-                      <th
-                        style={{
-                          padding: '0.5rem',
-                          textAlign: 'left',
-                          borderBottom: '1px solid #e5e7eb',
-                        }}
-                      >
-                        완료
-                      </th>
-                      <th
-                        style={{
-                          padding: '0.5rem',
-                          textAlign: 'left',
-                          borderBottom: '1px solid #e5e7eb',
-                        }}
-                      >
-                        오류
-                      </th>
+                    <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                      <th className="px-4 py-3">유형</th>
+                      <th className="px-4 py-3">상태</th>
+                      <th className="px-4 py-3">사이즈</th>
+                      <th className="px-4 py-3">업데이트</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {lectureDetail.jobs.map((job) => (
-                      <tr key={job.id}>
-                        <td
-                          style={{
-                            padding: '0.5rem',
-                            borderBottom: '1px solid #e5e7eb',
-                            fontFamily: 'monospace',
-                            fontSize: '0.85rem',
-                          }}
-                        >
-                          {job.id}
+                  <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                    {lectureDetail.uploads.map((upload) => (
+                      <tr key={upload.id}>
+                        <td className="px-4 py-3 uppercase text-slate-400">{upload.type}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant="muted">{upload.status}</Badge>
                         </td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
-                          {job.type}
+                        <td className="px-4 py-3 text-xs text-slate-300">
+                          {upload.sizeBytes
+                            ? `${(upload.sizeBytes / 1024 / 1024).toFixed(2)} MB`
+                            : '—'}
                         </td>
-                        <td
-                          style={{
-                            padding: '0.5rem',
-                            borderBottom: '1px solid #e5e7eb',
-                            color:
-                              job.status === 'SUCCEEDED'
-                                ? '#15803d'
-                                : job.status === 'NEEDS_ATTENTION' || job.status === 'FAILED'
-                                  ? '#dc2626'
-                                  : '#1f2937',
-                          }}
-                        >
-                          {job.status}
-                        </td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
-                          {formatDate(job.startedAt)}
-                        </td>
-                        <td style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
-                          {formatDate(job.completedAt)}
-                        </td>
-                        <td
-                          style={{
-                            padding: '0.5rem',
-                            borderBottom: '1px solid #e5e7eb',
-                            color: '#dc2626',
-                          }}
-                        >
-                          {job.lastError ?? '—'}
+                        <td className="px-4 py-3 text-xs text-slate-300">
+                          {formatDate(upload.updatedAt)}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </section>
-          </div>
+            </Card>
+
+            <Card className="border-slate-800/80 bg-slate-900/70">
+              <CardHeader title="잡 이력" />
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-800 text-sm">
+                  <thead>
+                    <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                      <th className="px-4 py-3">타입</th>
+                      <th className="px-4 py-3">상태</th>
+                      <th className="px-4 py-3">시작</th>
+                      <th className="px-4 py-3">완료</th>
+                      <th className="px-4 py-3">오류</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                    {lectureDetail.jobs.map((job) => (
+                      <tr key={job.id}>
+                        <td className="px-4 py-3 uppercase text-slate-400">{job.type}</td>
+                        <td className="px-4 py-3">
+                          <StatusIndicator status={job.status} />
+                        </td>
+                        <td className="px-4 py-3 text-xs text-slate-300">
+                          {formatDate(job.startedAt)}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-slate-300">
+                          {formatDate(job.completedAt)}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-danger">{job.lastError ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            <Card className="border-slate-800/80 bg-slate-900/70">
+              <CardHeader
+                title="Raw Response"
+                description="요약/퀴즈 원본 응답을 JSON 형태로 확인합니다."
+              />
+              <div className="grid gap-6 lg:grid-cols-2">
+                <RawJson label="Summary rawResponse" value={latestSummary?.rawResponse} />
+                <RawJson label="Quiz rawResponse" value={latestQuiz?.rawResponse} />
+              </div>
+            </Card>
+          </>
         )}
-      </section>
-    </main>
+      </div>
+    </section>
   );
 }
 
 export default function AdminJobsPage() {
   return (
-    <Suspense
-      fallback={
-        <main style={{ padding: '2rem', color: '#6b7280' }}>
-          관리자 데이터를 불러오는 중입니다...
-        </main>
-      }
-    >
+    <Suspense>
       <AdminJobsPageContent />
     </Suspense>
   );

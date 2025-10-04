@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "pnpm exec eslint src --ext .ts",
-    "test": "pnpm exec vitest",
+    "test": "vitest run --config ../../vitest.config.ts",
     "typecheck": "tsc -p tsconfig.build.json --noEmit"
   },
   "dependencies": {
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.16.5",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.0"
   }
 }
