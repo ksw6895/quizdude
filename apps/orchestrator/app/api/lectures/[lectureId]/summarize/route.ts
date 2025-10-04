@@ -1,8 +1,8 @@
-import { handleRoute } from '../../../../../lib/http';
+import { handleOptions, handleRoute } from '../../../../../lib/http';
 import { triggerSummarize } from '../../../../../lib/services/lectureService';
 
 export async function POST(request: Request, { params }: { params: { lectureId: string } }) {
-  return handleRoute(async () => {
+  return handleRoute(request, async () => {
     let json: unknown = {};
     try {
       json = await request.json();
@@ -12,4 +12,8 @@ export async function POST(request: Request, { params }: { params: { lectureId: 
     const data = await triggerSummarize(params.lectureId, json);
     return { body: data, status: 202 };
   });
+}
+
+export function OPTIONS(request: Request) {
+  return handleOptions(request);
 }

@@ -9,6 +9,17 @@ const envSchema = z.object({
     .optional()
     .transform((value) => (value ? value.replace(/\/$/, '') : undefined)),
   ENABLE_AUDIO_PIPELINE: z.string().optional(),
+  CORS_ALLOWED_ORIGINS: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value
+        ? value
+            .split(',')
+            .map((origin) => origin.trim())
+            .filter(Boolean)
+        : [],
+    ),
 });
 
 export interface RuntimeConfig {
@@ -19,6 +30,9 @@ export interface RuntimeConfig {
   };
   features: {
     audioPipeline: boolean;
+  };
+  cors: {
+    allowedOrigins: string[];
   };
 }
 
@@ -50,6 +64,12 @@ export function getRuntimeConfig(): RuntimeConfig {
     },
     features: {
       audioPipeline: toBoolean(parsed.data.ENABLE_AUDIO_PIPELINE),
+    },
+    cors: {
+      allowedOrigins:
+        parsed.data.CORS_ALLOWED_ORIGINS && parsed.data.CORS_ALLOWED_ORIGINS.length > 0
+          ? parsed.data.CORS_ALLOWED_ORIGINS
+          : ['http://localhost:3000', 'https://quizdude.vercel.app'],
     },
   } satisfies RuntimeConfig;
 
