@@ -17,11 +17,11 @@ interface StatusIndicatorProps {
 }
 
 export function StatusIndicator({ status, label, className }: StatusIndicatorProps) {
-  const tone = status ? (STATUS_COLORS[status] ?? 'bg-slate-500/80') : 'bg-slate-500/80';
+  const tone = status ? (STATUS_COLORS[status] ?? 'bg-slate-400') : 'bg-slate-400';
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-2 text-sm font-medium text-slate-200',
+        'inline-flex items-center gap-2 text-sm font-medium text-slate-600',
         className,
       )}
     >

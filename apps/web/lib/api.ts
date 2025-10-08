@@ -75,6 +75,7 @@ export interface UploadTargetResponse {
   token: string;
   pathname: string;
   contentType: string;
+  blobKey?: string;
 }
 
 export async function createLecture(payload: CreateLecturePayload) {

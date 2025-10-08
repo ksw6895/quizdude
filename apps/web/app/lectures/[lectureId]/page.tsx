@@ -29,7 +29,7 @@ function formatDate(value?: string | null) {
 function SummarySection({ summary }: { summary?: SummaryDetail }) {
   if (!summary) {
     return (
-      <Card className="border-slate-800/80 bg-slate-900/70">
+      <Card>
         <CardHeader
           title="요약"
           description="생성된 요약이 없습니다. Blob 업로드와 전사가 완료된 뒤 요약을 실행하세요."
@@ -41,41 +41,41 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
   const payload = summary.payload as LectureSummary;
 
   return (
-    <Card className="border-slate-800/80 bg-slate-900/70">
+    <Card>
       <CardHeader
         title="요약"
         description={`모델 ${summary.model} · 생성일 ${formatDate(summary.createdAt)}`}
       />
       <div className="flex flex-col gap-6">
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <h3 className="text-sm font-semibold text-slate-200">메타 정보</h3>
-            <dl className="mt-3 space-y-2 text-xs text-slate-400">
+          <div className="rounded-lg border-2 border-sky-100 bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-800">메타 정보</h3>
+            <dl className="mt-3 space-y-2 text-xs text-slate-500">
               <div className="flex justify-between">
                 <dt>Lecture ID</dt>
-                <dd className="text-slate-200">{payload.meta.lectureId}</dd>
+                <dd className="text-slate-700">{payload.meta.lectureId}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>언어</dt>
-                <dd className="text-slate-200">{payload.meta.language}</dd>
+                <dd className="text-slate-700">{payload.meta.language}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>PDF 파일</dt>
-                <dd className="max-w-[200px] truncate text-slate-200">
+                <dd className="max-w-[200px] truncate text-slate-700">
                   {payload.meta.source?.pdfFileId ?? '없음'}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt>전사 파일</dt>
-                <dd className="max-w-[200px] truncate text-slate-200">
+                <dd className="max-w-[200px] truncate text-slate-700">
                   {payload.meta.source?.transcriptFileId ?? '없음'}
                 </dd>
               </div>
             </dl>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <h3 className="text-sm font-semibold text-slate-200">참고 페이지</h3>
-            <p className="mt-3 text-xs text-slate-300">
+          <div className="rounded-lg border-2 border-sky-100 bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-800">참고 페이지</h3>
+            <p className="mt-3 text-xs text-slate-600">
               {payload.meta.source?.pages && payload.meta.source.pages.length > 0
                 ? payload.meta.source.pages.join(', ')
                 : '지정된 페이지가 없습니다.'}
@@ -84,13 +84,16 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-slate-200">핵심 하이라이트</h3>
+          <h3 className="text-sm font-semibold text-slate-800">핵심 하이라이트</h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             {payload.highlights.map((highlight, index) => (
-              <div key={index} className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-                <h4 className="font-semibold text-slate-200">{highlight.point}</h4>
-                <p className="mt-2 text-sm text-slate-300">{highlight.why}</p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
+              <div
+                key={index}
+                className="rounded-lg border-2 border-sky-100 bg-white p-4 shadow-sm"
+              >
+                <h4 className="font-semibold text-slate-800">{highlight.point}</h4>
+                <p className="mt-2 text-sm text-slate-600">{highlight.why}</p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
                   <Badge variant="muted">
                     PDF: {highlight.sourceMap.pdfPages.join(', ') || '—'}
                   </Badge>
@@ -104,24 +107,24 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <h3 className="text-sm font-semibold text-slate-200">암기 포인트</h3>
-            <ul className="mt-3 space-y-3 text-sm text-slate-300">
+          <div className="rounded-lg border-2 border-sky-100 bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-800">암기 포인트</h3>
+            <ul className="mt-3 space-y-3 text-sm text-slate-600">
               {payload.memorization.map((memo, index) => (
                 <li key={index}>
-                  <strong className="text-slate-200">{memo.fact}</strong>
-                  <p className="text-xs text-slate-400">{memo.mnemonic}</p>
+                  <strong className="text-slate-800">{memo.fact}</strong>
+                  <p className="text-xs text-slate-500">{memo.mnemonic}</p>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <h3 className="text-sm font-semibold text-slate-200">핵심 개념</h3>
-            <ul className="mt-3 space-y-3 text-sm text-slate-300">
+          <div className="rounded-lg border-2 border-sky-100 bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-800">핵심 개념</h3>
+            <ul className="mt-3 space-y-3 text-sm text-slate-600">
               {payload.concepts.map((concept, index) => (
                 <li key={index}>
-                  <strong className="text-slate-200">{concept.concept}</strong>
-                  <p className="text-xs text-slate-400">{concept.explanation}</p>
+                  <strong className="text-slate-800">{concept.concept}</strong>
+                  <p className="text-xs text-slate-500">{concept.explanation}</p>
                   {concept.relatedFigures.length > 0 && (
                     <p className="text-xs text-slate-500">
                       관련 자료: {concept.relatedFigures.join(', ')}
@@ -135,7 +138,7 @@ function SummarySection({ summary }: { summary?: SummaryDetail }) {
 
         {payload.quizSeeds?.length ? (
           <div>
-            <h3 className="text-sm font-semibold text-slate-200">퀴즈 시드</h3>
+            <h3 className="text-sm font-semibold text-slate-800">퀴즈 시드</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {payload.quizSeeds.map((seed, index) => (
                 <Badge key={index} variant="muted">
@@ -158,7 +161,7 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
 
   if (!quiz) {
     return (
-      <Card className="border-slate-800/80 bg-slate-900/70">
+      <Card>
         <CardHeader
           title="퀴즈"
           description="생성된 퀴즈가 없습니다. 요약 생성 후 퀴즈를 실행하세요."
@@ -212,23 +215,23 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
   };
 
   return (
-    <Card className="border-slate-800/80 bg-slate-900/70">
+    <Card>
       <CardHeader
         title="퀴즈"
         description={`모델 ${quiz.model} · 생성일 ${formatDate(quiz.createdAt)} · ${index + 1}/${items.length}번 문항`}
       />
       <div className="flex flex-col gap-6">
         {showScore && (
-          <div className="rounded-2xl border border-brand-400/40 bg-brand-500/10 px-4 py-3 text-brand-100">
+          <div className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-brand-700">
             최종 점수: {score} / {items.length}
           </div>
         )}
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
-          <div className="text-xs uppercase tracking-wide text-slate-400">
+        <div className="rounded-lg border-2 border-sky-100 bg-white p-5 shadow-sm">
+          <div className="text-xs uppercase tracking-wide text-slate-500">
             {current.difficulty.toUpperCase()} · {current.tags.join(', ')}
           </div>
-          <h3 className="mt-2 text-lg font-semibold text-slate-100">{current.stem}</h3>
+          <h3 className="mt-2 text-lg font-semibold text-slate-900">{current.stem}</h3>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -238,23 +241,23 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
             const revealedState = revealed[index];
             const background = revealedState
               ? isCorrect
-                ? 'bg-success/15 border-success/40'
+                ? 'bg-success/15 border-success/30'
                 : isSelected
-                  ? 'bg-danger/20 border-danger/40'
-                  : 'bg-slate-900/70 border-slate-800'
+                  ? 'bg-rose-100 border-rose-200'
+                  : 'bg-sky-50 border-sky-200'
               : isSelected
-                ? 'bg-brand-500/20 border-brand-400/40'
-                : 'bg-slate-900/70 border-slate-800';
+                ? 'bg-brand-50 border-brand-200'
+                : 'bg-white border-sky-100';
 
             return (
               <button
                 key={optionIndex}
                 type="button"
                 onClick={() => handleSelect(optionIndex)}
-                className={`rounded-2xl border px-4 py-3 text-left text-sm text-slate-200 transition ${background}`}
+                className={`rounded-lg border px-4 py-3 text-left text-sm text-slate-700 transition ${background}`}
                 disabled={revealedState}
               >
-                <span className="mr-3 font-semibold text-brand-200">
+                <span className="mr-3 font-semibold text-brand-600">
                   {String.fromCharCode(65 + optionIndex)}.
                 </span>
                 {option}
@@ -264,10 +267,10 @@ function QuizRunner({ quiz }: { quiz?: QuizDetail }) {
         </div>
 
         {revealed[index] && (
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-200">
-            <strong className="text-slate-100">정답 해설</strong>
-            <p className="mt-2 text-slate-300">{current.rationale}</p>
-            <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-400">
+          <div className="rounded-lg border-2 border-sky-100 bg-white p-4 text-sm text-slate-700 shadow-sm">
+            <strong className="text-slate-900">정답 해설</strong>
+            <p className="mt-2 text-slate-600">{current.rationale}</p>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
               <Badge variant="muted">
                 PDF{' '}
                 {current.sourceRef.pdfPages?.length ? current.sourceRef.pdfPages.join(', ') : '—'}
@@ -306,12 +309,12 @@ function JobHistory({ jobs }: { jobs?: LectureDetail['jobs'] }) {
   }
 
   return (
-    <Card className="border-slate-800/80 bg-slate-900/70">
+    <Card>
       <CardHeader title="잡 이력" description="요약·퀴즈·전사 잡 상태를 시간순으로 확인하세요." />
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-800 text-sm">
+        <table className="min-w-full divide-y divide-sky-100 text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+            <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3">타입</th>
               <th className="px-4 py-3">상태</th>
               <th className="px-4 py-3">시작</th>
@@ -319,15 +322,15 @@ function JobHistory({ jobs }: { jobs?: LectureDetail['jobs'] }) {
               <th className="px-4 py-3">오류</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80 text-slate-200">
+          <tbody className="divide-y divide-sky-100 text-slate-700">
             {jobs.map((job) => (
               <tr key={job.id}>
-                <td className="px-4 py-3 uppercase text-slate-400">{job.type}</td>
+                <td className="px-4 py-3 uppercase text-slate-500">{job.type}</td>
                 <td className="px-4 py-3">
                   <StatusIndicator status={job.status} />
                 </td>
-                <td className="px-4 py-3 text-xs text-slate-300">{formatDate(job.startedAt)}</td>
-                <td className="px-4 py-3 text-xs text-slate-300">{formatDate(job.completedAt)}</td>
+                <td className="px-4 py-3 text-xs text-slate-500">{formatDate(job.startedAt)}</td>
+                <td className="px-4 py-3 text-xs text-slate-500">{formatDate(job.completedAt)}</td>
                 <td className="px-4 py-3 text-xs text-danger">{job.lastError ?? '—'}</td>
               </tr>
             ))}
@@ -371,24 +374,24 @@ export default function LectureDetailPage() {
       <header className="flex flex-col gap-4">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-brand-200"
+          className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-500"
         >
           <ArrowLeftIcon className="h-4 w-4" /> 대시보드로 돌아가기
         </Link>
-        {isLoading && <h1 className="text-3xl font-semibold text-white">강의 로딩 중...</h1>}
+        {isLoading && <h1 className="text-3xl font-semibold text-slate-900">강의 로딩 중...</h1>}
         {error && (
           <h1 className="text-3xl font-semibold text-danger">강의를 불러올 수 없습니다.</h1>
         )}
         {data && (
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-semibold text-white">{data.title}</h1>
+              <h1 className="text-3xl font-semibold text-slate-900">{data.title}</h1>
               <Badge variant="muted">{data.language.toUpperCase()}</Badge>
               <Badge variant="muted">{data.modality}</Badge>
               {data.audioPipelineEnabled && <Badge variant="default">Audio Pipeline</Badge>}
             </div>
-            <p className="text-sm text-slate-300">{data.description ?? '설명 없음'}</p>
-            <div className="text-xs text-slate-400">
+            <p className="text-sm text-slate-600">{data.description ?? '설명 없음'}</p>
+            <div className="text-xs text-slate-500">
               생성일 {formatDate(data.createdAt)} · 업데이트 {formatDate(data.updatedAt)}
             </div>
             <div className="flex flex-wrap gap-3">

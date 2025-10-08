@@ -29,15 +29,15 @@ const highlights = [
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-10">
-      <section className="rounded-3xl border border-brand-500/30 bg-gradient-to-br from-brand-500/30 via-slate-900 to-slate-950 px-8 py-12 shadow-card">
+      <section className="rounded-xl border-2 border-sky-200 bg-white/95 px-8 py-12 shadow-card">
         <Badge variant="default" className="mb-4 self-start">
           Gemini · Prisma · Blob Orchestration
         </Badge>
-        <h1 className="max-w-2xl text-4xl font-bold text-white lg:text-5xl">
+        <h1 className="max-w-2xl text-4xl font-bold text-slate-900 lg:text-5xl">
           강의 자료 업로드부터 요약·퀴즈 생성까지 자동화하는{' '}
-          <span className="text-brand-200">Quizdude Control Center</span>
+          <span className="text-brand-600">Quizdude Control Center</span>
         </h1>
-        <p className="mt-6 max-w-2xl text-lg text-slate-200">
+        <p className="mt-6 max-w-2xl text-lg text-slate-600">
           PDF/미디어 업로드부터 Gemini 연동, 잡 모니터링까지 모든 파이프라인을 한 대시보드에서
           운영합니다. Render 워커와 Vercel 프론트가 동일한 빌드 파이프라인을 사용하도록 설계되어
           배포 편차를 최소화했습니다.
@@ -54,7 +54,7 @@ export default function HomePage() {
 
       <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {highlights.map((item) => (
-          <Card key={item.title} className="h-full border-slate-800/80 bg-slate-900/70">
+          <Card key={item.title} className="h-full">
             <CardHeader title={item.title} description={item.description} />
             <div className="flex items-center justify-between">
               <Button
@@ -72,12 +72,12 @@ export default function HomePage() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-slate-800/80 bg-slate-900/60">
+        <Card>
           <CardHeader
             title="Render Worker 상태"
             description="워커 인스턴스·잡 재시도·에러 로그를 빠르게 확인하세요."
           />
-          <ul className="space-y-3 text-sm text-slate-300">
+          <ul className="space-y-3 text-sm text-slate-600">
             <li>• 병렬 워커 루프와 지수 백오프 재시도로 안정적인 JobRun 처리를 보장합니다.</li>
             <li>• pnpm@9.15.5 Corepack 고정으로 Vercel·Render 간 빌드 환경을 통일했습니다.</li>
             <li>
@@ -86,12 +86,12 @@ export default function HomePage() {
             </li>
           </ul>
         </Card>
-        <Card className="border-slate-800/80 bg-slate-900/60">
+        <Card>
           <CardHeader
             title="빠른 체크리스트"
             description="배포 전 반드시 아래 항목을 확인하세요."
           />
-          <ul className="space-y-3 text-sm text-slate-300">
+          <ul className="space-y-3 text-sm text-slate-600">
             <li>
               • Blob 토큰, Gemini 키, DATABASE_URL 등 주요 환경 변수가 Render와 Vercel에 모두
               설정되어 있는가?

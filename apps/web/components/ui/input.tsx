@@ -13,7 +13,7 @@ export const Input = React.forwardRef<InputElement, InputProps>(({ className, ..
     <input
       ref={ref}
       className={twMerge(
-        'w-full rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 shadow-inner focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/40',
+        'w-full rounded-md border-2 border-sky-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200',
         className,
       )}
       {...props}

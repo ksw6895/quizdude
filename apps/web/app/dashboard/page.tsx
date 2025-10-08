@@ -353,12 +353,12 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-4">
-        <h1 className="text-3xl font-semibold text-white">업로드 대시보드</h1>
-        <p className="max-w-2xl text-slate-300">
+        <h1 className="text-3xl font-semibold text-slate-900">업로드 대시보드</h1>
+        <p className="max-w-2xl text-slate-600">
           PDF와 미디어 파일을 업로드하고 Gemini 기반 요약 및 퀴즈 생성을 실행합니다. Blob 업로드
           진행 상황은 실시간으로 추적되며, 잡 재실행 버튼으로 언제든지 결과를 갱신할 수 있습니다.
         </p>
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
           <span className="inline-flex items-center gap-1">
             <ArrowPathIcon className="h-4 w-4" /> {POLL_INTERVAL_MS / 1000}s 마다 목록 자동 새로고침
           </span>
@@ -370,7 +370,7 @@ export default function DashboardPage() {
       </header>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <Card className="border-slate-800/80 bg-slate-900/70">
+        <Card>
           <CardHeader
             title="새 강의 업로드"
             description="필수 PDF와 선택적인 오디오/비디오/전사 텍스트를 등록하세요. 업로드 완료 시 요약이 자동으로 실행됩니다."
@@ -378,7 +378,7 @@ export default function DashboardPage() {
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="col-span-full">
-                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <label className="flex flex-col gap-2 text-sm text-slate-700">
                   <span>강의 제목 *</span>
                   <Input
                     value={title}
@@ -388,7 +388,7 @@ export default function DashboardPage() {
                   />
                 </label>
               </div>
-              <label className="flex flex-col gap-2 text-sm text-slate-200">
+              <label className="flex flex-col gap-2 text-sm text-slate-700">
                 <span>강의 설명</span>
                 <Textarea
                   value={description}
@@ -397,7 +397,7 @@ export default function DashboardPage() {
                   placeholder="강의 개요, 핵심 학습 목표 등을 입력하면 후기 확인 시 도움이 됩니다."
                 />
               </label>
-              <label className="flex flex-col gap-2 text-sm text-slate-200">
+              <label className="flex flex-col gap-2 text-sm text-slate-700">
                 <span>강의 언어</span>
                 <Input
                   value={language}
@@ -413,16 +413,16 @@ export default function DashboardPage() {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 className={clsx(
-                  'group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900/60 p-10 text-center transition hover:border-brand-400 hover:bg-slate-900',
-                  isDragging ? 'border-brand-400 bg-slate-900/40' : '',
+                  'group flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-sky-300 bg-sky-50/60 p-10 text-center transition hover:border-brand-400 hover:bg-brand-50',
+                  isDragging ? 'border-brand-400 bg-brand-50/80' : '',
                 )}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <CloudArrowUpIcon className="h-12 w-12 text-brand-300" />
-                <p className="mt-4 text-base font-medium text-slate-200">
+                <CloudArrowUpIcon className="h-12 w-12 text-brand-500" />
+                <p className="mt-4 text-base font-medium text-slate-700">
                   파일을 끌어다 놓거나 클릭해서 선택하세요
                 </p>
-                <p className="mt-2 max-w-md text-sm text-slate-400">
+                <p className="mt-2 max-w-md text-sm text-slate-500">
                   PDF 1개와 오디오·비디오·전사 텍스트를 각각 1개씩 업로드할 수 있습니다. 동일 종류
                   파일을 다시 선택하면 최신 파일로 교체됩니다.
                 </p>
@@ -437,10 +437,10 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-2xl border border-slate-800/80 bg-slate-900/50 px-5 py-4">
+            <div className="flex items-center justify-between rounded-lg border-2 border-sky-100 bg-white px-5 py-4">
               <div>
-                <p className="text-sm font-semibold text-slate-200">오디오 파이프라인 실행</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-sm font-semibold text-slate-700">오디오 파이프라인 실행</p>
+                <p className="text-xs text-slate-500">
                   오디오/비디오 파일이 있을 때만 활성화됩니다. 전사 완료 후 Gemini 요약이 해당
                   텍스트를 활용합니다.
                 </p>
@@ -454,12 +454,12 @@ export default function DashboardPage() {
             </div>
 
             {errorMessage && (
-              <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {errorMessage}
               </div>
             )}
             {feedback && (
-              <div className="rounded-xl border border-brand-400/40 bg-brand-500/10 px-4 py-3 text-sm text-brand-100">
+              <div className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-700">
                 {feedback}
               </div>
             )}
@@ -476,26 +476,26 @@ export default function DashboardPage() {
         </Card>
 
         <div className="flex flex-col gap-6">
-          <Card className="border-slate-800/80 bg-slate-900/70">
+          <Card>
             <CardHeader title="선택한 파일" description="업로드 순서 및 상태를 확인하세요." />
-            <ul className="space-y-4 text-sm text-slate-200">
+            <ul className="space-y-4 text-sm text-slate-700">
               {selectedFiles.length === 0 && (
-                <li className="text-slate-400">등록된 파일이 없습니다.</li>
+                <li className="text-slate-500">등록된 파일이 없습니다.</li>
               )}
               {selectedFiles.map((file) => (
                 <li
                   key={file.id}
-                  className="flex items-start justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-3"
+                  className="flex items-start justify-between gap-4 rounded-lg border-2 border-sky-100 bg-white px-4 py-3"
                 >
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <Badge variant="muted">{KIND_LABELS[file.kind]}</Badge>
-                      <span className="font-medium text-slate-100">{file.file.name}</span>
+                      <span className="font-medium text-slate-800">{file.file.name}</span>
                     </div>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-500">
                       {(file.file.size / 1024 / 1024).toFixed(2)} MB
                     </span>
-                    {file.message && <span className="text-xs text-slate-400">{file.message}</span>}
+                    {file.message && <span className="text-xs text-slate-500">{file.message}</span>}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <Badge variant={statusBadges[file.status.toUpperCase()]?.tone ?? 'muted'}>
@@ -505,7 +505,7 @@ export default function DashboardPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(file.id)}
-                      className="text-xs text-slate-400 hover:text-slate-100"
+                      className="text-xs text-slate-500 hover:text-brand-600"
                     >
                       제거
                     </Button>
@@ -515,12 +515,12 @@ export default function DashboardPage() {
             </ul>
           </Card>
 
-          <Card className="border-slate-800/80 bg-slate-900/70">
+          <Card>
             <CardHeader
               title="업로드 팁"
               description="대용량 파일 업로드 안정성을 높이기 위한 가이드입니다."
             />
-            <ul className="space-y-3 text-xs text-slate-300">
+            <ul className="space-y-3 text-xs text-slate-600">
               <li>
                 • 브라우저 창을 새로고침하지 않은 상태에서 PDF → 미디어 → 전사 순으로 업로드하면
                 안정적입니다.
@@ -535,15 +535,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Card className="border-slate-800/80 bg-slate-900/70">
+      <Card>
         <CardHeader
           title="강의 목록"
           description="최근 업로드된 강의와 잡 상태를 확인하고 재실행할 수 있습니다."
         />
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-800 text-sm">
+          <table className="min-w-full divide-y divide-sky-100 text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+              <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-3">강의</th>
                 <th className="px-4 py-3">모달리티</th>
                 <th className="px-4 py-3">요약</th>
@@ -552,10 +552,10 @@ export default function DashboardPage() {
                 <th className="px-4 py-3">액션</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80">
+            <tbody className="divide-y divide-sky-100">
               {isLoading && (
                 <tr>
-                  <td className="px-4 py-6 text-center text-slate-400" colSpan={6}>
+                  <td className="px-4 py-6 text-center text-slate-500" colSpan={6}>
                     데이터를 불러오는 중입니다...
                   </td>
                 </tr>
@@ -569,22 +569,22 @@ export default function DashboardPage() {
               )}
               {lectures && lectures.length === 0 && (
                 <tr>
-                  <td className="px-4 py-6 text-center text-slate-400" colSpan={6}>
+                  <td className="px-4 py-6 text-center text-slate-500" colSpan={6}>
                     아직 업로드된 강의가 없습니다. 상단 폼에서 처음 강의를 등록해보세요.
                   </td>
                 </tr>
               )}
               {lectures?.map((lecture) => (
-                <tr key={lecture.id} className="hover:bg-slate-900/40">
+                <tr key={lecture.id} className="hover:bg-brand-50">
                   <td className="px-4 py-4">
                     <div className="flex flex-col gap-1">
                       <Link
                         href={`/lectures/${lecture.id}`}
-                        className="text-sm font-semibold text-slate-100 hover:text-brand-200"
+                        className="text-sm font-semibold text-brand-600 hover:text-brand-500"
                       >
                         {lecture.title}
                       </Link>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-500">
                         생성일 {formatDate(lecture.createdAt)}
                       </span>
                     </div>
@@ -596,7 +596,7 @@ export default function DashboardPage() {
                     {lecture.latestSummary ? (
                       <div className="flex flex-col">
                         <StatusIndicator status="SUCCEEDED" label="생성됨" />
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-500">
                           {formatDate(lecture.latestSummary.createdAt)}
                         </span>
                       </div>
@@ -611,7 +611,7 @@ export default function DashboardPage() {
                           status="SUCCEEDED"
                           label={`${lecture.latestQuiz.itemCount ?? 0}문항`}
                         />
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-500">
                           {formatDate(lecture.latestQuiz.createdAt)}
                         </span>
                       </div>
@@ -620,11 +620,11 @@ export default function DashboardPage() {
                     )}
                   </td>
                   <td className="px-4 py-4">
-                    <div className="flex flex-col gap-1 text-xs text-slate-300">
+                    <div className="flex flex-col gap-1 text-xs text-slate-600">
                       {Object.entries(lecture.jobs).map(([key, job]) =>
                         job ? (
                           <div key={key} className="flex items-center justify-between gap-2">
-                            <span className="uppercase text-slate-400">{key}</span>
+                            <span className="uppercase text-slate-500">{key}</span>
                             <StatusIndicator status={job.status} />
                           </div>
                         ) : null,
