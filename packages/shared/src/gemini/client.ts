@@ -124,15 +124,17 @@ export class GeminiClient {
     await this.ensureModelAvailable(model);
 
     const url = `${this.apiBaseUrl}/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.apiKey}`;
-    const payload: Record<string, unknown> = {
-      contents: options.contents,
+    const generationConfig: Record<string, unknown> = {
+      temperature: options.temperature ?? 0.2,
+      topK: options.topK ?? 32,
+      topP: options.topP ?? 0.95,
       responseMimeType: options.responseMimeType ?? 'application/json',
       responseSchema: options.responseSchema as JsonSchema,
-      generationConfig: {
-        temperature: options.temperature ?? 0.2,
-        topK: options.topK ?? 32,
-        topP: options.topP ?? 0.95,
-      },
+    };
+
+    const payload: Record<string, unknown> = {
+      contents: options.contents,
+      generationConfig,
     };
 
     if (options.systemInstruction) {
