@@ -2,7 +2,10 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL 환경 변수가 필요합니다.'),
-  BLOB_READ_WRITE_TOKEN: z.string().min(1, 'BLOB_READ_WRITE_TOKEN 환경 변수가 필요합니다.'),
+  BLOB_READ_WRITE_TOKEN: z
+    .string()
+    .optional()
+    .transform((value) => (value ? value.trim() : undefined)),
   BLOB_PUBLIC_BASE_URL: z
     .string()
     .url('BLOB_PUBLIC_BASE_URL 은 URL 형식이어야 합니다.')
@@ -25,7 +28,7 @@ const envSchema = z.object({
 export interface RuntimeConfig {
   databaseUrl: string;
   blob: {
-    readWriteToken: string;
+    readWriteToken?: string;
     publicBaseUrl?: string;
   };
   features: {
