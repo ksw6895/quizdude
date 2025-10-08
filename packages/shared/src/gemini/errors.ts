@@ -16,3 +16,13 @@ export class GeminiModelUnavailableError extends GeminiApiError {
     this.name = 'GeminiModelUnavailableError';
   }
 }
+
+export class GeminiResponseSchemaError extends Error {
+  public readonly path: string;
+
+  constructor(message: string, path: string) {
+    super(message);
+    this.name = 'GeminiResponseSchemaError';
+    this.path = path;
+  }
+}
