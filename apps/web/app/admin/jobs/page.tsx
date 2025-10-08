@@ -30,8 +30,8 @@ function formatDate(value?: string | null) {
 function RawJson({ label, value }: { label: string; value: unknown }) {
   if (!value) {
     return (
-      <div className="flex flex-col gap-2 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-        <strong className="text-sm text-slate-200">{label}</strong>
+      <div className="flex flex-col gap-2 rounded-lg border-2 border-sky-100 bg-white p-4 shadow-sm">
+        <strong className="text-sm text-slate-800">{label}</strong>
         <span className="text-xs text-slate-500">자료 없음</span>
       </div>
     );
@@ -39,8 +39,8 @@ function RawJson({ label, value }: { label: string; value: unknown }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <strong className="text-sm text-slate-200">{label}</strong>
-      <pre className="max-h-80 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-200 shadow-inner shadow-slate-900/80">
+      <strong className="text-sm text-slate-800">{label}</strong>
+      <pre className="max-h-80 overflow-auto rounded-lg border border-sky-100 bg-white p-4 text-xs text-slate-700 shadow-inner shadow-brand-100/70">
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>
@@ -99,13 +99,18 @@ function AdminJobsPageContent() {
 
   return (
     <section className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-      <Card className="h-fit border-slate-800/80 bg-slate-900/70">
+      <Card className="h-fit">
         <CardHeader title="강의 목록" description="진단할 강의를 선택하세요." />
         <div className="flex flex-col gap-3">
-          <Button asChild variant="ghost" size="sm" className="justify-start text-slate-300">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="justify-start text-slate-600 hover:text-brand-600"
+          >
             <Link href="/dashboard">← 대시보드</Link>
           </Button>
-          <div className="max-h-[70vh] overflow-y-auto rounded-2xl border border-slate-800/60 bg-slate-950/50 p-3">
+          <div className="max-h-[70vh] overflow-y-auto rounded-lg border-2 border-sky-100 bg-white p-3 shadow-sm">
             {lectures && lectures.length > 0 ? (
               <ul className="flex flex-col gap-2">
                 {lectures.map((lecture) => {
@@ -116,14 +121,14 @@ function AdminJobsPageContent() {
                         type="button"
                         onClick={() => handleSelectLecture(lecture.id)}
                         className={clsx(
-                          'w-full rounded-2xl border px-4 py-3 text-left transition',
+                          'w-full rounded-lg border-2 px-4 py-3 text-left transition',
                           isActive
-                            ? 'border-brand-400/40 bg-brand-500/20 text-brand-100'
-                            : 'border-slate-800 bg-slate-900/80 text-slate-200 hover:border-brand-400/30 hover:bg-slate-900',
+                            ? 'border-brand-300 bg-brand-50 text-brand-700 shadow-sm'
+                            : 'border-transparent bg-white text-slate-700 hover:border-brand-200 hover:bg-brand-50',
                         )}
                       >
-                        <div className="text-sm font-semibold">{lecture.title}</div>
-                        <div className="text-xs text-slate-400">
+                        <div className="text-sm font-semibold text-slate-800">{lecture.title}</div>
+                        <div className="text-xs text-slate-500">
                           생성일 {formatDate(lecture.createdAt)}
                         </div>
                       </button>
@@ -132,7 +137,7 @@ function AdminJobsPageContent() {
                 })}
               </ul>
             ) : (
-              <p className="text-sm text-slate-400">강의가 없습니다.</p>
+              <p className="text-sm text-slate-500">강의가 없습니다.</p>
             )}
           </div>
         </div>
@@ -140,7 +145,7 @@ function AdminJobsPageContent() {
 
       <div className="flex flex-col gap-6">
         {!selectedLectureId && (
-          <Card className="border-slate-800/80 bg-slate-900/70">
+          <Card>
             <CardHeader
               title="강의를 선택하세요"
               description="좌측 목록에서 진단할 강의를 선택하면 상세 정보가 표시됩니다."
@@ -148,24 +153,24 @@ function AdminJobsPageContent() {
           </Card>
         )}
         {selectedLectureId && isLoading && (
-          <Card className="border-slate-800/80 bg-slate-900/70">
+          <Card>
             <CardHeader title="강의 데이터를 불러오는 중..." />
           </Card>
         )}
         {detailError && (
-          <Card className="border-slate-800/80 bg-slate-900/70">
+          <Card>
             <CardHeader title="강의 상세 정보를 불러올 수 없습니다." />
           </Card>
         )}
 
         {lectureDetail && (
           <>
-            <Card className="border-slate-800/80 bg-slate-900/70">
+            <Card>
               <CardHeader
                 title={lectureDetail.title}
                 description={lectureDetail.description ?? '설명이 없습니다.'}
               />
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                 <Badge variant="muted">{lectureDetail.language.toUpperCase()}</Badge>
                 <Badge variant="muted">{lectureDetail.modality}</Badge>
                 {lectureDetail.audioPipelineEnabled && (
@@ -187,13 +192,13 @@ function AdminJobsPageContent() {
             </Card>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card className="border-slate-800/80 bg-slate-900/70">
+              <Card>
                 <CardHeader title="최근 요약" />
                 {latestSummary ? (
-                  <div className="space-y-3 text-sm text-slate-300">
+                  <div className="space-y-3 text-sm text-slate-600">
                     <div className="flex items-center gap-2">
                       <Badge variant="success">생성됨</Badge>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-500">
                         {formatDate(latestSummary.createdAt)}
                       </span>
                     </div>
@@ -203,52 +208,52 @@ function AdminJobsPageContent() {
                     />
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400">요약 데이터가 없습니다.</p>
+                  <p className="text-sm text-slate-500">요약 데이터가 없습니다.</p>
                 )}
               </Card>
-              <Card className="border-slate-800/80 bg-slate-900/70">
+              <Card>
                 <CardHeader title="최근 퀴즈" />
                 {latestQuiz ? (
-                  <div className="space-y-3 text-sm text-slate-300">
+                  <div className="space-y-3 text-sm text-slate-600">
                     <div className="flex items-center gap-2">
                       <Badge variant="success">생성됨</Badge>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-500">
                         {formatDate(latestQuiz.createdAt)}
                       </span>
                     </div>
                     <RawJson label="퀴즈 페이로드" value={latestQuiz.payload as QuizSet} />
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400">퀴즈 데이터가 없습니다.</p>
+                  <p className="text-sm text-slate-500">퀴즈 데이터가 없습니다.</p>
                 )}
               </Card>
             </div>
 
-            <Card className="border-slate-800/80 bg-slate-900/70">
+            <Card>
               <CardHeader title="업로드 현황" />
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-800 text-sm">
+                <table className="min-w-full divide-y divide-sky-100 text-sm">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                    <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
                       <th className="px-4 py-3">유형</th>
                       <th className="px-4 py-3">상태</th>
                       <th className="px-4 py-3">사이즈</th>
                       <th className="px-4 py-3">업데이트</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                  <tbody className="divide-y divide-sky-100 text-slate-700">
                     {lectureDetail.uploads.map((upload) => (
                       <tr key={upload.id}>
-                        <td className="px-4 py-3 uppercase text-slate-400">{upload.type}</td>
+                        <td className="px-4 py-3 uppercase text-slate-500">{upload.type}</td>
                         <td className="px-4 py-3">
                           <Badge variant="muted">{upload.status}</Badge>
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-300">
+                        <td className="px-4 py-3 text-xs text-slate-500">
                           {upload.sizeBytes
                             ? `${(upload.sizeBytes / 1024 / 1024).toFixed(2)} MB`
                             : '—'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-300">
+                        <td className="px-4 py-3 text-xs text-slate-500">
                           {formatDate(upload.updatedAt)}
                         </td>
                       </tr>
@@ -258,12 +263,12 @@ function AdminJobsPageContent() {
               </div>
             </Card>
 
-            <Card className="border-slate-800/80 bg-slate-900/70">
+            <Card>
               <CardHeader title="잡 이력" />
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-800 text-sm">
+                <table className="min-w-full divide-y divide-sky-100 text-sm">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                    <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
                       <th className="px-4 py-3">타입</th>
                       <th className="px-4 py-3">상태</th>
                       <th className="px-4 py-3">시작</th>
@@ -271,17 +276,17 @@ function AdminJobsPageContent() {
                       <th className="px-4 py-3">오류</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                  <tbody className="divide-y divide-sky-100 text-slate-700">
                     {lectureDetail.jobs.map((job) => (
                       <tr key={job.id}>
-                        <td className="px-4 py-3 uppercase text-slate-400">{job.type}</td>
+                        <td className="px-4 py-3 uppercase text-slate-500">{job.type}</td>
                         <td className="px-4 py-3">
                           <StatusIndicator status={job.status} />
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-300">
+                        <td className="px-4 py-3 text-xs text-slate-500">
                           {formatDate(job.startedAt)}
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-300">
+                        <td className="px-4 py-3 text-xs text-slate-500">
                           {formatDate(job.completedAt)}
                         </td>
                         <td className="px-4 py-3 text-xs text-danger">{job.lastError ?? '—'}</td>
@@ -292,7 +297,7 @@ function AdminJobsPageContent() {
               </div>
             </Card>
 
-            <Card className="border-slate-800/80 bg-slate-900/70">
+            <Card>
               <CardHeader
                 title="Raw Response"
                 description="요약/퀴즈 원본 응답을 JSON 형태로 확인합니다."

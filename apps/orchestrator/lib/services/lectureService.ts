@@ -333,8 +333,10 @@ export async function createLecture(payload: unknown) {
     })),
   });
 
+  let uploads: Array<(typeof targets)[number] & { blobKey: string; id: string }> = [];
+
   if (targets.length > 0) {
-    await prisma.$transaction(
+    const createdUploads = await prisma.$transaction(
       targets.map((target) =>
         prisma.upload.create({
           data: {
@@ -349,11 +351,17 @@ export async function createLecture(payload: unknown) {
         }),
       ),
     );
+
+    uploads = targets.map((target, index) => ({
+      ...target,
+      blobKey: target.id,
+      id: createdUploads[index].id,
+    }));
   }
 
   return {
     lectureId: lecture.id,
-    uploads: targets,
+    uploads,
     audioPipelineEnabled: lecture.audioPipelineEnabled,
   };
 }

@@ -17,11 +17,12 @@ type ButtonElement = ElementRef<'button'>;
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    'bg-brand-500 text-white hover:bg-brand-400 focus-visible:ring-brand-300 shadow-md shadow-brand-900/30',
-  secondary: 'bg-slate-800 text-slate-100 hover:bg-slate-700 focus-visible:ring-slate-500 shadow',
+    'border border-brand-600 bg-brand-600 text-white shadow-[0_14px_28px_-18px_rgba(37,99,235,0.65)] hover:bg-brand-500 focus-visible:ring-brand-200',
+  secondary:
+    'border border-brand-200 bg-white text-brand-600 hover:bg-brand-50 focus-visible:ring-brand-200',
   outline:
-    'border border-slate-700 text-slate-100 hover:bg-slate-900/60 focus-visible:ring-brand-400',
-  ghost: 'text-slate-200 hover:bg-slate-900/70 focus-visible:ring-slate-600',
+    'border-2 border-sky-200 bg-white text-slate-700 hover:bg-sky-50 focus-visible:ring-brand-200',
+  ghost: 'text-slate-600 hover:bg-sky-100 focus-visible:ring-brand-200',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -31,7 +32,7 @@ const sizeStyles: Record<ButtonSize, string> = {
 };
 
 const baseStyle =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:opacity-60 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60';
 
 export const Button = React.forwardRef<ButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading = false, className, children, ...props }, ref) => {

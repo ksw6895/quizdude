@@ -10,11 +10,11 @@
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 min-h-screen font-body;
+  @apply min-h-screen bg-sky-50 text-slate-900 font-body;
 }
 
 a {
-  @apply text-current no-underline;
+  @apply text-brand-600 no-underline hover:text-brand-700;
 }
 
 input,
@@ -30,9 +30,9 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-900;
+  @apply bg-sky-100;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-700 rounded-full;
+  @apply rounded-full bg-brand-200 hover:bg-brand-300;
 }

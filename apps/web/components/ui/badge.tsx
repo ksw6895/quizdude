@@ -8,11 +8,11 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<Required<BadgeProps>['variant'], string> = {
-  default: 'bg-brand-500/15 text-brand-200 border border-brand-400/30',
-  success: 'bg-success/10 text-success border border-success/30',
-  warning: 'bg-warning/10 text-warning border border-warning/30',
-  danger: 'bg-danger/10 text-danger border border-danger/30',
-  muted: 'bg-slate-800 text-slate-300 border border-slate-700',
+  default: 'border border-brand-200 bg-brand-50 text-brand-700',
+  success: 'border border-emerald-200 bg-emerald-50 text-emerald-700',
+  warning: 'border border-amber-200 bg-amber-50 text-amber-700',
+  danger: 'border border-rose-200 bg-rose-50 text-rose-700',
+  muted: 'border border-slate-200 bg-slate-100 text-slate-600',
 };
 
 export function Badge({ children, variant = 'default', className }: BadgeProps) {

@@ -110,14 +110,14 @@ describe('lectureService', () => {
           filename: 'file.pdf',
         },
       ],
-      readWriteToken: 'token',
-      publicBaseUrl: 'https://blob.example.com',
     });
     expect(prismaTransaction).toHaveBeenCalled();
     expect(result).toMatchObject({
       lectureId: 'lec-1',
       audioPipelineEnabled: true,
-      uploads: expect.arrayContaining([expect.objectContaining({ id: 'lec-1/pdf/file.pdf' })]),
+      uploads: expect.arrayContaining([
+        expect.objectContaining({ id: 'upload-1', blobKey: 'lec-1/pdf/file.pdf' }),
+      ]),
     });
   });
 
