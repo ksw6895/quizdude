@@ -110,6 +110,8 @@ describe('lectureService', () => {
           filename: 'file.pdf',
         },
       ],
+      readWriteToken: 'token',
+      publicBaseUrl: 'https://blob.example.com',
     });
     expect(prismaTransaction).toHaveBeenCalled();
     expect(result).toMatchObject({

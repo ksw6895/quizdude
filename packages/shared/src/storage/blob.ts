@@ -13,6 +13,8 @@ export interface CreateUploadTargetInput {
   kind: BlobObjectKind;
   access?: 'public' | 'private';
   cacheControl?: number;
+  readWriteToken?: string;
+  publicBaseUrl?: string;
 }
 
 export interface UploadTarget {
@@ -24,8 +26,8 @@ export interface UploadTarget {
   contentType: string;
 }
 
-function ensureReadWriteToken(): string {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
+function ensureReadWriteToken(override?: string): string {
+  const token = override ?? process.env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
     throw new Error('BLOB_READ_WRITE_TOKEN environment variable is not configured.');
   }
@@ -42,9 +44,17 @@ function resolveStoreBaseUrl(token: string): string {
 }
 
 export async function createUploadTarget(input: CreateUploadTargetInput): Promise<UploadTarget> {
-  const { lectureId, objectKey, contentType, kind, cacheControl } = input;
+  const {
+    lectureId,
+    objectKey,
+    contentType,
+    kind,
+    cacheControl,
+    readWriteToken: overrideToken,
+    publicBaseUrl,
+  } = input;
 
-  const readWriteToken = ensureReadWriteToken();
+  const readWriteToken = ensureReadWriteToken(overrideToken);
   const pathname = `${lectureId}/${kind}/${objectKey}`;
 
   const token = await generateClientTokenFromReadWriteToken({
@@ -60,7 +70,8 @@ export async function createUploadTarget(input: CreateUploadTargetInput): Promis
     throw new Error('Generated client token payload does not match requested pathname.');
   }
 
-  const baseUrl = process.env.BLOB_PUBLIC_BASE_URL ?? resolveStoreBaseUrl(readWriteToken);
+  const baseUrl =
+    publicBaseUrl ?? process.env.BLOB_PUBLIC_BASE_URL ?? resolveStoreBaseUrl(readWriteToken);
   const url = `${baseUrl}/${pathname}`;
 
   return {
@@ -76,9 +87,9 @@ export async function createUploadTarget(input: CreateUploadTargetInput): Promis
 export async function storeBuffer(
   key: string,
   data: ArrayBuffer,
-  options: { contentType: string },
+  options: { contentType: string; readWriteToken?: string; publicBaseUrl?: string },
 ): Promise<PutBlobResult> {
-  const readWriteToken = ensureReadWriteToken();
+  const readWriteToken = ensureReadWriteToken(options.readWriteToken);
   const pathname = key;
   const token = await generateClientTokenFromReadWriteToken({
     pathname,
@@ -87,7 +98,10 @@ export async function storeBuffer(
     token: readWriteToken,
   });
 
-  const baseUrl = process.env.BLOB_PUBLIC_BASE_URL ?? resolveStoreBaseUrl(readWriteToken);
+  const baseUrl =
+    options.publicBaseUrl ??
+    process.env.BLOB_PUBLIC_BASE_URL ??
+    resolveStoreBaseUrl(readWriteToken);
   const url = `${baseUrl}/${pathname}`;
 
   const res = await fetch(url, {
