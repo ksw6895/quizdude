@@ -132,7 +132,8 @@ export const quizSetJsonSchema: JsonSchema = {
           },
           answer: {
             type: 'integer',
-            enum: [0, 1, 2, 3],
+            minimum: 0,
+            maximum: 3,
           },
           rationale: { type: 'string' },
           difficulty: {
