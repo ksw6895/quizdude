@@ -271,7 +271,9 @@ export class GeminiClient {
     const model = options.model;
     await this.ensureModelAvailable(model);
 
-    assertValidResponseSchema(options.responseSchema);
+    if (options.responseSchema) {
+      assertValidResponseSchema(options.responseSchema);
+    }
 
     const url = `${this.apiBaseUrl}/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.apiKey}`;
     const generationConfig: Record<string, unknown> = {
@@ -281,7 +283,9 @@ export class GeminiClient {
     };
 
     generationConfig.response_mime_type = options.responseMimeType ?? 'application/json';
-    generationConfig.response_schema = options.responseSchema as JsonSchema;
+    if (options.responseSchema) {
+      generationConfig.response_schema = options.responseSchema as JsonSchema;
+    }
 
     const payload: Record<string, unknown> = {
       contents: options.contents,

@@ -30,3 +30,7 @@ export function mapGeminiError(error: unknown): never {
   }
   throw error;
 }
+
+export function shouldEnforceGeminiSchema(): boolean {
+  return process.env.GEMINI_ALLOW_RELAXED_SCHEMA !== 'true';
+}

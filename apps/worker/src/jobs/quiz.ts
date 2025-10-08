@@ -16,7 +16,7 @@ import type { QuizSet } from '@quizdude/shared';
 import { z } from 'zod';
 
 import { TemporaryError } from '../errors.js';
-import { createGeminiClient, mapGeminiError } from '../gemini.js';
+import { createGeminiClient, mapGeminiError, shouldEnforceGeminiSchema } from '../gemini.js';
 import type { Logger } from '../logger.js';
 
 const quizGeneratorSystemPrompt = [
@@ -56,6 +56,7 @@ export async function runQuizJob(job: JobRun, logger: Logger) {
 
   const gemini = createGeminiClient();
   const model = getGeminiModel();
+  const enforceSchema = shouldEnforceGeminiSchema();
 
   const summaryJson = JSON.stringify(summaryPayload);
   const summaryBytes = new TextEncoder().encode(summaryJson);
@@ -95,14 +96,22 @@ export async function runQuizJob(job: JobRun, logger: Logger) {
     ),
   ];
 
+  if (!enforceSchema) {
+    logger.warn('quiz:response-schema-disabled', {
+      jobId: job.id,
+      lectureId: payload.lectureId,
+    });
+  }
+
   let response;
   try {
-    response = await gemini.generateContent<QuizSet>({
+    const requestOptions = {
       model,
       contents: [buildUserContent([...parts, buildFilePart(summaryFile)])],
       systemInstruction: buildSystemInstruction(quizGeneratorSystemPrompt),
-      responseSchema: quizSetJsonSchema,
-    });
+      ...(enforceSchema ? { responseSchema: quizSetJsonSchema } : {}),
+    };
+    response = await gemini.generateContent<QuizSet>(requestOptions);
   } catch (error) {
     mapGeminiError(error);
   }

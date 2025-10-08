@@ -35,7 +35,7 @@ export interface GenerateContentOptions {
   model: string;
   contents: GeminiContent[];
   systemInstruction?: GeminiContent;
-  responseSchema: JsonSchema;
+  responseSchema?: JsonSchema;
   responseMimeType?: string;
   temperature?: number;
   topK?: number;

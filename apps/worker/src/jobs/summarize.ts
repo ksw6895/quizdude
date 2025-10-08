@@ -16,7 +16,7 @@ import { z } from 'zod';
 
 import { downloadUpload } from '../artifacts.js';
 import { TemporaryError } from '../errors.js';
-import { createGeminiClient, mapGeminiError } from '../gemini.js';
+import { createGeminiClient, mapGeminiError, shouldEnforceGeminiSchema } from '../gemini.js';
 import type { Logger } from '../logger.js';
 
 const summarizerSystemPrompt = [
@@ -95,6 +95,7 @@ export async function runSummarizeJob(job: JobRun, logger: Logger) {
 
   const gemini = createGeminiClient();
   const model = getGeminiModel();
+  const enforceSchema = shouldEnforceGeminiSchema();
 
   const sourceParts: ReturnType<typeof buildTextPart>[] = [];
   const inputFiles: Record<string, unknown> = {
@@ -188,12 +189,19 @@ export async function runSummarizeJob(job: JobRun, logger: Logger) {
 
   let response;
   try {
-    response = await gemini.generateContent<LectureSummary>({
+    const requestOptions = {
       model,
       contents,
       systemInstruction: buildSystemInstruction(summarizerSystemPrompt),
-      responseSchema: lectureSummaryJsonSchema,
-    });
+      ...(enforceSchema ? { responseSchema: lectureSummaryJsonSchema } : {}),
+    };
+    if (!enforceSchema) {
+      logger.warn('summarize:response-schema-disabled', {
+        jobId: job.id,
+        lectureId: job.lectureId,
+      });
+    }
+    response = await gemini.generateContent<LectureSummary>(requestOptions);
   } catch (error) {
     mapGeminiError(error);
   }
