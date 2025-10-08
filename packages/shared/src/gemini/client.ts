@@ -4,7 +4,11 @@ import {
   getGeminiConfig,
 } from '../config/gemini.js';
 import type { JsonSchema } from '../schemas/jsonSchemas.js';
-import { GeminiApiError, GeminiModelUnavailableError } from './errors.js';
+import {
+  GeminiApiError,
+  GeminiModelUnavailableError,
+  GeminiResponseSchemaError,
+} from './errors.js';
 import type {
   GeminiContent,
   GeminiFileUploadArgs,
@@ -20,6 +24,150 @@ export interface GeminiClientOptions {
 }
 
 const PDF_MIME_TYPES = new Set(['application/pdf']);
+
+const GEMINI_STRUCTURED_OUTPUT_DOC_URL = 'https://ai.google.dev/gemini-api/docs/structured-output';
+
+const SUPPORTED_SCHEMA_KEYS = new Set([
+  'type',
+  'format',
+  'description',
+  'nullable',
+  'enum',
+  'properties',
+  'required',
+  'items',
+  'minItems',
+  'maxItems',
+  'minLength',
+  'maxLength',
+  'minimum',
+  'maximum',
+  'multipleOf',
+  'anyOf',
+  'allOf',
+  'title',
+  'default',
+  'examples',
+  'propertyOrdering',
+  'uniqueItems',
+]);
+
+const BLOCKED_SCHEMA_KEYS = new Set([
+  '$schema',
+  '$defs',
+  '$ref',
+  'definitions',
+  'patternProperties',
+  'if',
+  'then',
+  'else',
+  'not',
+  'unevaluatedProperties',
+  'additionalProperties',
+  'oneOf',
+]);
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function assertValidResponseSchema(schema: JsonSchema, path = 'responseSchema'): void {
+  if (!isPlainObject(schema)) {
+    throw new GeminiResponseSchemaError(
+      `Gemini responseSchema must be an object compatible with the OpenAPI 3 subset described at ${GEMINI_STRUCTURED_OUTPUT_DOC_URL}.`,
+      path,
+    );
+  }
+
+  for (const [key, value] of Object.entries(schema)) {
+    const currentPath = `${path}.${key}`;
+
+    if (BLOCKED_SCHEMA_KEYS.has(key)) {
+      throw new GeminiResponseSchemaError(
+        `Gemini responseSchema key "${key}" is not supported. See ${GEMINI_STRUCTURED_OUTPUT_DOC_URL}.`,
+        currentPath,
+      );
+    }
+
+    if (!SUPPORTED_SCHEMA_KEYS.has(key)) {
+      throw new GeminiResponseSchemaError(
+        `Gemini responseSchema key "${key}" is not part of the supported OpenAPI subset. See ${GEMINI_STRUCTURED_OUTPUT_DOC_URL}.`,
+        currentPath,
+      );
+    }
+
+    if (key === 'type') {
+      if (Array.isArray(value)) {
+        throw new GeminiResponseSchemaError(
+          'Gemini responseSchema does not accept an array for "type". Use `nullable: true` or `anyOf` instead.',
+          currentPath,
+        );
+      }
+      if (typeof value !== 'string') {
+        throw new GeminiResponseSchemaError(
+          'Gemini responseSchema expects "type" to be a string.',
+          currentPath,
+        );
+      }
+    }
+
+    if (key === 'nullable' && typeof value !== 'boolean') {
+      throw new GeminiResponseSchemaError(
+        'Gemini responseSchema expects "nullable" to be a boolean.',
+        currentPath,
+      );
+    }
+
+    if (key === 'enum' || key === 'required' || key === 'propertyOrdering') {
+      if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
+        throw new GeminiResponseSchemaError(
+          `Gemini responseSchema expects "${key}" to be an array of strings.`,
+          currentPath,
+        );
+      }
+    }
+
+    if (key === 'items') {
+      if (Array.isArray(value)) {
+        throw new GeminiResponseSchemaError(
+          'Gemini responseSchema expects "items" to be a single schema object.',
+          currentPath,
+        );
+      }
+      if (!isPlainObject(value)) {
+        throw new GeminiResponseSchemaError(
+          'Gemini responseSchema expects "items" to be an object.',
+          currentPath,
+        );
+      }
+      assertValidResponseSchema(value as JsonSchema, currentPath);
+    }
+
+    if (key === 'properties') {
+      if (!isPlainObject(value)) {
+        throw new GeminiResponseSchemaError(
+          'Gemini responseSchema expects "properties" to be an object.',
+          currentPath,
+        );
+      }
+      for (const [propKey, propValue] of Object.entries(value)) {
+        assertValidResponseSchema(propValue as JsonSchema, `${currentPath}.${propKey}`);
+      }
+    }
+
+    if (key === 'anyOf' || key === 'allOf') {
+      if (!Array.isArray(value)) {
+        throw new GeminiResponseSchemaError(
+          `Gemini responseSchema expects "${key}" to be an array of schema objects.`,
+          currentPath,
+        );
+      }
+      value.forEach((entry, index) => {
+        assertValidResponseSchema(entry as JsonSchema, `${currentPath}[${index}]`);
+      });
+    }
+  }
+}
 
 export class GeminiClient {
   private readonly apiKey: string;
@@ -123,14 +271,17 @@ export class GeminiClient {
     const model = options.model;
     await this.ensureModelAvailable(model);
 
+    assertValidResponseSchema(options.responseSchema);
+
     const url = `${this.apiBaseUrl}/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${this.apiKey}`;
     const generationConfig: Record<string, unknown> = {
       temperature: options.temperature ?? 0.2,
       topK: options.topK ?? 32,
       topP: options.topP ?? 0.95,
-      response_mime_type: options.responseMimeType ?? 'application/json',
-      response_schema: options.responseSchema as JsonSchema,
     };
+
+    generationConfig.response_mime_type = options.responseMimeType ?? 'application/json';
+    generationConfig.response_schema = options.responseSchema as JsonSchema;
 
     const payload: Record<string, unknown> = {
       contents: options.contents,
