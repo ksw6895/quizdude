@@ -1,15 +1,11 @@
 export type JsonSchema = Record<string, unknown>;
 
 export const lectureSummaryJsonSchema: JsonSchema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  title: 'LectureSummary',
   type: 'object',
-  additionalProperties: false,
   required: ['meta', 'highlights', 'memorization', 'concepts'],
   properties: {
     meta: {
       type: 'object',
-      additionalProperties: false,
       required: ['lectureId', 'title', 'language', 'source'],
       properties: {
         lectureId: { type: 'string' },
@@ -20,18 +16,13 @@ export const lectureSummaryJsonSchema: JsonSchema = {
         },
         source: {
           type: 'object',
-          additionalProperties: false,
           properties: {
-            pdfFileId: { type: ['string', 'null'] },
-            transcriptFileId: { type: ['string', 'null'] },
+            pdfFileId: { type: 'string', nullable: true },
+            transcriptFileId: { type: 'string', nullable: true },
             pages: {
-              anyOf: [
-                { type: 'null' },
-                {
-                  type: 'array',
-                  items: { type: 'integer', minimum: 1 },
-                },
-              ],
+              type: 'array',
+              nullable: true,
+              items: { type: 'integer' },
             },
           },
         },
@@ -41,28 +32,21 @@ export const lectureSummaryJsonSchema: JsonSchema = {
       type: 'array',
       items: {
         type: 'object',
-        additionalProperties: false,
         required: ['point', 'why', 'sourceMap'],
         properties: {
           point: { type: 'string' },
           why: { type: 'string' },
           sourceMap: {
             type: 'object',
-            additionalProperties: false,
             required: ['pdfPages', 'timestamps'],
             properties: {
               pdfPages: {
                 type: 'array',
-                items: { type: 'integer', minimum: 0 },
-                default: [],
+                items: { type: 'integer' },
               },
               timestamps: {
                 type: 'array',
-                default: [],
-                items: {
-                  type: 'string',
-                  pattern: '^\\\d{2}:\\\d{2}:\\\d{2}(\\.\\d{1,3})?$',
-                },
+                items: { type: 'string' },
               },
             },
           },
@@ -73,7 +57,6 @@ export const lectureSummaryJsonSchema: JsonSchema = {
       type: 'array',
       items: {
         type: 'object',
-        additionalProperties: false,
         required: ['fact', 'mnemonic'],
         properties: {
           fact: { type: 'string' },
@@ -85,7 +68,6 @@ export const lectureSummaryJsonSchema: JsonSchema = {
       type: 'array',
       items: {
         type: 'object',
-        additionalProperties: false,
         required: ['concept', 'explanation', 'relatedFigures'],
         properties: {
           concept: { type: 'string' },
@@ -93,17 +75,14 @@ export const lectureSummaryJsonSchema: JsonSchema = {
           relatedFigures: {
             type: 'array',
             items: { type: 'string' },
-            default: [],
           },
         },
       },
     },
     quizSeeds: {
       type: 'array',
-      default: [],
       items: {
         type: 'object',
-        additionalProperties: false,
         required: ['topic', 'difficulty', 'pitfalls'],
         properties: {
           topic: { type: 'string' },
@@ -114,7 +93,6 @@ export const lectureSummaryJsonSchema: JsonSchema = {
           pitfalls: {
             type: 'array',
             items: { type: 'string' },
-            default: [],
           },
         },
       },
@@ -123,10 +101,7 @@ export const lectureSummaryJsonSchema: JsonSchema = {
 };
 
 export const quizSetJsonSchema: JsonSchema = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema',
-  title: 'QuizSet',
   type: 'object',
-  additionalProperties: false,
   required: ['lectureId', 'items'],
   properties: {
     lectureId: { type: 'string' },
@@ -136,7 +111,6 @@ export const quizSetJsonSchema: JsonSchema = {
       maxItems: 20,
       items: {
         type: 'object',
-        additionalProperties: false,
         required: [
           'qid',
           'stem',
@@ -149,17 +123,16 @@ export const quizSetJsonSchema: JsonSchema = {
         ],
         properties: {
           qid: { type: 'string' },
-          stem: { type: 'string', minLength: 8 },
+          stem: { type: 'string' },
           options: {
             type: 'array',
             minItems: 4,
             maxItems: 4,
-            items: { type: 'string', minLength: 1 },
+            items: { type: 'string' },
           },
           answer: {
             type: 'integer',
-            minimum: 0,
-            maximum: 3,
+            enum: [0, 1, 2, 3],
           },
           rationale: { type: 'string' },
           difficulty: {
@@ -172,18 +145,14 @@ export const quizSetJsonSchema: JsonSchema = {
           },
           sourceRef: {
             type: 'object',
-            additionalProperties: false,
             properties: {
               pdfPages: {
                 type: 'array',
-                items: { type: 'integer', minimum: 1 },
+                items: { type: 'integer' },
               },
               timestamps: {
                 type: 'array',
-                items: {
-                  type: 'string',
-                  pattern: '^\\\d{2}:\\\d{2}:\\\d{2}(\\.\\d{1,3})?$',
-                },
+                items: { type: 'string' },
               },
             },
           },

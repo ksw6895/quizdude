@@ -128,8 +128,8 @@ export class GeminiClient {
       temperature: options.temperature ?? 0.2,
       topK: options.topK ?? 32,
       topP: options.topP ?? 0.95,
-      responseMimeType: options.responseMimeType ?? 'application/json',
-      responseSchema: options.responseSchema as JsonSchema,
+      response_mime_type: options.responseMimeType ?? 'application/json',
+      response_schema: options.responseSchema as JsonSchema,
     };
 
     const payload: Record<string, unknown> = {
